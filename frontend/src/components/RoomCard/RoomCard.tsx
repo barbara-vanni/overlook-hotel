@@ -13,7 +13,7 @@ import Card from '@mui/material/Card';
 
         const RoomCard = ({ title, image, description }: RoomCardProps) => {
             return (
-                <Card sx={{ maxWidth: 345 }}>
+                <Card sx={{ width: 450 }}>
                     <CardMedia
                         sx={{ height: 140 }}
                         image={image}
