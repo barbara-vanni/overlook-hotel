@@ -8,6 +8,6 @@ public class ReactController {
 
     @GetMapping("/{path:[^\\.]*}")
     public String redirect() {
-        return "forward:/frontend/index.html";
+        return "forward:../frontend/index.html";
     }
 }

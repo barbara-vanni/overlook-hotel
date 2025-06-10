@@ -1,4 +1,8 @@
 spring:
+  spring:
+    profiles:
+      active: dev
+
   application:
     name: overlook_hotel
 
