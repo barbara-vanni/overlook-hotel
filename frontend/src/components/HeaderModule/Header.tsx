@@ -4,7 +4,7 @@ import {AppBar} from "@mui/material";
 const Header = () => {
     return (
         <header className="header">
-            <AppBar sx={{flexDirection: "row", padding:"0 50px"}} className="app-bar">
+            <AppBar  sx={{flexDirection: "row", padding:"0 50px" }} className="app-bar">
             <h1>Overlook Hotel</h1>
             <nav className="nav">
                 <ul>

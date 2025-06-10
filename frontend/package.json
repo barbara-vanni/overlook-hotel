@@ -11,7 +11,7 @@
   },
   "proxy": {
     "/api": {
-      "target": "http://localhost:8000",
+      "target": "http://localhost:8080/overlook_hotel",
       "changeOrigin": true,
       "secure": false
     }

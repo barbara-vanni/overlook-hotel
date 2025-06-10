@@ -1,3 +1,4 @@
+import "./RoomCard.css";
 import Card from '@mui/material/Card';
         import CardActions from '@mui/material/CardActions';
         import CardContent from '@mui/material/CardContent';
@@ -13,9 +14,9 @@ import Card from '@mui/material/Card';
 
         const RoomCard = ({ title, image, description }: RoomCardProps) => {
             return (
-                <Card sx={{ width: 450 }}>
+                <Card sx={{ width: 450, boxShadow:3, backgroundColor: "whitesmoke"}}>
                     <CardMedia
-                        sx={{ height: 140 }}
+                        sx={{ height: 150 }}
                         image={image}
                         title={title}
                     />
@@ -27,8 +28,8 @@ import Card from '@mui/material/Card';
                             {description}
                         </Typography>
                     </CardContent>
-                    <CardActions>
-                        <Button variant="contained">Share</Button>
+                    <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <Button variant="outlined">Réserver</Button>
                         <Button size="small">Learn More</Button>
                     </CardActions>
                 </Card>
