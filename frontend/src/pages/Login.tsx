@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
       import axios from "axios";
       import Box from "@mui/material/Box";
@@ -5,35 +6,58 @@ import React, { useState } from "react";
       import Typography from "@mui/material/Typography";
       import Modal from "@mui/material/Modal";
 
-      const style = {
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: 400,
-        bgcolor: "background.paper",
-        border: "2px solid #000",
-        boxShadow: 24,
-        p: 4,
-      };
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+    const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const style = {
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: 400,
+                bgcolor: "background.paper",
+                border: "2px solid #000",
+                boxShadow: 24,
+                p: 4,
+              };
 
       const LoginModal: React.FC = () => {
         const [open, setOpen] = useState(false);
         const [username, setUsername] = useState("");
         const [password, setPassword] = useState("");
+        const navigate = useNavigate();
 
         const handleOpen = () => setOpen(true);
         const handleClose = () => setOpen(false);
 
-        const handleLogin = async () => {
-          try {
-            const response = await axios.post("/api/auth/login", { username, password });
-            alert(response.data);
-            handleClose();
-          } catch (error) {
-            alert("Erreur d'authentification");
-          }
-        };
+          const handleLogin = async () => {
+              try {
+                  const response = await axios.post(
+                      `${SUPABASE_URL}/auth/v1/token?grant_type=password`,
+                      {
+                          email: username,
+                          password: password,
+                      },
+                      {
+                          headers: {
+                              apikey: SUPABASE_KEY,
+                              "Content-Type": "application/json",
+                          },
+                      }
+                  );
+
+                  const accessToken = response.data.access_token;
+                  localStorage.setItem("accessToken", accessToken); // pour les appels futurs
+
+                  alert("Connexion réussie");
+                  handleClose();
+                  navigate("/reservations");
+
+              } catch (error) {
+                  console.error(error);
+                  alert("Erreur d'authentification");
+              }
+          };
+
 
         return (
           <div>

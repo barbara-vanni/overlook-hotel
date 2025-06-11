@@ -15,4 +15,3 @@ public class OverlookHotelApplication {
 		SpringApplication.run(OverlookHotelApplication.class, args);
 	}
 }
-
