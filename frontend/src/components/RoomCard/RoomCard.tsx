@@ -5,6 +5,7 @@ import Card from '@mui/material/Card';
         import CardMedia from '@mui/material/CardMedia';
         import Button from '@mui/material/Button';
         import Typography from '@mui/material/Typography';
+import {useNavigate} from "react-router-dom";
 
         interface RoomCardProps {
             title: string;
@@ -13,6 +14,7 @@ import Card from '@mui/material/Card';
         }
 
         const RoomCard = ({ title, image, description }: RoomCardProps) => {
+            const navigate = useNavigate();
             return (
                 <Card sx={{ width: 450, boxShadow:3, backgroundColor: "whitesmoke"}}>
                     <CardMedia
@@ -29,7 +31,7 @@ import Card from '@mui/material/Card';
                         </Typography>
                     </CardContent>
                     <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>
-                        <Button variant="outlined">Réserver</Button>
+                        <Button variant="outlined" onClick={() => navigate("/reservations")}>Réserver</Button>
                         <Button size="small">Learn More</Button>
                     </CardActions>
                 </Card>
