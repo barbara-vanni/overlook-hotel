@@ -9,6 +9,7 @@ import { ImageSlider } from "../components/Slider/Slider";
 
 const Home = () => {
     return (
+
         <div>
             <h1 style={{ 
                 textAlign: 'center', 

@@ -46,6 +46,7 @@ Thumbs.db
 node_modules/
 build/
 dist/
+frontend/.env
 .env
 .env.*    # Pour .env.development, .env.production, etc.
 .npm/

@@ -24,7 +24,7 @@ public class Profile {
     private String phone;
 
     @Column(nullable = false)
-    private Integer age;
+    private int age;
 
     @Column(nullable = false)
     private String address;
@@ -42,14 +42,18 @@ public class Profile {
     private LocalDate endContract;
 
     @ManyToOne
-    @JoinColumn(name = "id_team")
-    private Team team;
+    @JoinColumn(name = "id_team") // FK vers table team
+    private Team idTeam;
 
-    // Constructeurs
-    public Profile() {}
+    // --- Constructeurs ---
+
+    public Profile() {
+        // Constructeur vide pour JPA
+    }
 
     public Profile(UUID id, String lastName, String firstName, String email, String phone, Integer age,
-                   String address, String role, String contract, LocalDate startContract, LocalDate endContract, Team team) {
+                   String address, String role, String contract, LocalDate startContract,
+                   LocalDate endContract, Team team) {
         this.id = id;
         this.lastName = lastName;
         this.firstName = firstName;
@@ -61,10 +65,11 @@ public class Profile {
         this.contract = contract;
         this.startContract = startContract;
         this.endContract = endContract;
-        this.team = team;
+        this.idTeam = team;
     }
 
-    // Getters et Setters
+    // --- Getters & Setters ---
+
     public UUID getId() {
         return id;
     }
@@ -105,11 +110,11 @@ public class Profile {
         this.phone = phone;
     }
 
-    public Integer getAge() {
+    public int getAge() {
         return age;
     }
 
-    public void setAge(Integer age) {
+    public void setAge(int age) {
         this.age = age;
     }
 
@@ -153,11 +158,11 @@ public class Profile {
         this.endContract = endContract;
     }
 
-    public Team getTeam() {
-        return team;
+    public Team getIdTeam() {
+        return idTeam;
     }
 
-    public void setTeam(Team team) {
-        this.team = team;
+    public void setIdTeam(Team idTeam) {
+        this.idTeam = idTeam;
     }
 }
