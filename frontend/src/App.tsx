@@ -6,6 +6,7 @@ import Reservations from "./pages/Reservations.tsx";
 import Rooms from "./pages/Rooms.tsx";
 import Login from "./pages/Login.tsx";
 import PrivateRoute from "./components/Authentication/PrivateRoute.tsx";
+import Footer from "./components/FooterModule/Footer.tsx";
 
 function App() {
     return (
@@ -21,6 +22,7 @@ function App() {
                     </PrivateRoute>
                 } />
             </Routes>
+            <Footer />
         </Router>
     );
 }
