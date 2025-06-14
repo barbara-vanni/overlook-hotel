@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import React, { useState } from "react";
       import axios from "axios";
       import Box from "@mui/material/Box";
@@ -46,18 +47,45 @@ import React, { useState } from "react";
                   );
 
                   const accessToken = response.data.access_token;
-                  localStorage.setItem("accessToken", accessToken); // pour les appels futurs
+                  localStorage.setItem("accessToken", accessToken);
+                  console.log("accessToken", accessToken);
+
+                  // Décoder le token pour extraire l’ID Supabase
+                  const decoded: any = jwtDecode(accessToken);
+                  const userId = decoded.sub;
+
+                  // Récupérer le rôle depuis ton backend
+                  const profileRes = await axios.get(
+                      `${import.meta.env.VITE_API_BASE_URL}/api/user-role/${userId}`,
+                      {
+                          headers: { Authorization: `Bearer ${accessToken}` },
+                      }
+                  );
+                  console.log("Réponse du backend :", profileRes.data);
+
+                  const role = profileRes.data.role;
+                  localStorage.setItem("userId", userId);
+                  localStorage.setItem("userRole", role);
+                  console.log("userId", userId);
+                  console.log("role", role);
 
                   alert("Connexion réussie");
                   handleClose();
-                  navigate("/reservations");
+
+                  if (role === "admin") {
+                      navigate("/admin");
+                  }
+                  else if (role === "employee") {
+                      navigate("/employee");
+                  } else {
+                      navigate("/reservations");
+                  }
 
               } catch (error) {
                   console.error(error);
                   alert("Erreur d'authentification");
               }
           };
-
 
         return (
           <div>

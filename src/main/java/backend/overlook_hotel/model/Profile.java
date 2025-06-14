@@ -1,9 +1,11 @@
 package backend.overlook_hotel.model;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.UUID;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "profil")
 public class Profile {
@@ -126,6 +128,7 @@ public class Profile {
         this.address = address;
     }
 
+    @JsonProperty("role")
     public String getRole() {
         return role;
     }
