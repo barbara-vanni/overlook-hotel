@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "dom-helpers": "^5.2.1",
+    "jwt-decode": "^4.0.0",
     "react-router-dom": "^7.6.2",
     "react-transition-group": "^4.4.5"
   },
