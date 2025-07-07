@@ -1,10 +1,14 @@
 {
   "dependencies": {
+    "@mui/x-date-pickers": "^8.5.2",
+    "date-fns": "^4.1.0",
     "dom-helpers": "^5.2.1",
+    "jwt-decode": "^4.0.0",
     "react-router-dom": "^7.6.2",
     "react-transition-group": "^4.4.5"
   },
   "devDependencies": {
+    "@types/jwt-decode": "^2.2.1",
     "@types/react": "^19.1.7",
     "@types/react-dom": "^19.1.6"
   }

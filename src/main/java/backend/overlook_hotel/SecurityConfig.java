@@ -14,6 +14,9 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> {
                 auth.requestMatchers("/api/auth/**").permitAll();
+                auth.requestMatchers("/api/profiles/**").permitAll();
+                auth.requestMatchers("/api/user-role/**").permitAll();
+                auth.requestMatchers("/api/clients/**").permitAll();
                 auth.requestMatchers("/api/reservation/**").authenticated();
             })
             .formLogin(Customizer.withDefaults());

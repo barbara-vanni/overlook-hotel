@@ -1,7 +1,6 @@
 spring:
-  spring:
-    profiles:
-      active: dev
+  profiles:
+    active: dev
 
   application:
     name: overlook_hotel
@@ -12,6 +11,14 @@ spring:
     password: ${DB_PASSWORD}
 
     driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 2
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 1800000
+
 
   jpa:
     hibernate:
