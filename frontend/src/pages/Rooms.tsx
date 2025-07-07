@@ -1,6 +1,7 @@
+import React, { useState } from 'react';
 import RoomCard from "../components/RoomCard/RoomCard.tsx";
 import JasminSuitePicture from "../assets/image/JasminSuitePicture.jpg";
-import { Grid, Container, Typography, Box, Button } from "@mui/material";
+import { Grid, Container, Typography, Box, Button, Modal, Fade, Backdrop } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
 const StyledContainer = styled(Box)(({ theme }) => ({
@@ -153,6 +154,7 @@ const DiscoverButton = styled(Button)(({ theme }) => ({
     textTransform: 'uppercase',
     fontWeight: 400,
     marginBottom: theme.spacing(3),
+    position: 'relative',
     '&:hover': {
         backgroundColor: 'transparent',
         textDecoration: 'underline'
@@ -210,38 +212,189 @@ const FullWidthContainer = styled(Box)({
     alignItems: 'center',
     display: 'flex',
     justifyContent: 'center',
-    // marginLeft: 'calc(-50vw + 50%)',
-    // position: 'relative'
 });
 
+// Modal Styles
+const StyledModal = styled(Modal)(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+}));
+
+const ModalContent = styled(Box)(({ theme }) => ({
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    boxShadow: '0 24px 48px rgba(0, 0, 0, 0.15)',
+    padding: theme.spacing(6),
+    maxWidth: '600px',
+    width: '90%',
+    maxHeight: '80vh',
+    overflow: 'auto',
+    position: 'relative',
+    border: '1px solid #d4c4a8',
+    [theme.breakpoints.down('md')]: {
+        padding: theme.spacing(4),
+        maxWidth: '90%'
+    }
+}));
+
+const ModalCloseButton = styled(Button)(({ theme }) => ({
+    position: 'absolute',
+    top: theme.spacing(2),
+    right: theme.spacing(2),
+    minWidth: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: 'transparent',
+    color: '#a67c52',
+    fontSize: '1.5rem',
+    '&:hover': {
+        backgroundColor: '#f0ede8',
+        color: '#8b6342'
+    }
+}));
+
+const ModalTitle = styled(Typography)(({ theme }) => ({
+    fontFamily: '"Playfair Display", serif',
+    fontWeight: 400,
+    color: '#a67c52',
+    fontSize: '2rem',
+    letterSpacing: '2px',
+    marginBottom: theme.spacing(3),
+    textAlign: 'center',
+    [theme.breakpoints.down('md')]: {
+        fontSize: '1.5rem'
+    }
+}));
+
+const ModalDescription = styled(Typography)(({ theme }) => ({
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: 300,
+    color: '#2c2c2c',
+    fontSize: '1rem',
+    lineHeight: '1.8',
+    marginBottom: theme.spacing(3),
+    textAlign: 'center'
+}));
+
+const ModalFeaturesList = styled(Box)(({ theme }) => ({
+    marginBottom: theme.spacing(4)
+}));
+
+const ModalFeature = styled(Typography)(({ theme }) => ({
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: 300,
+    color: '#2c2c2c',
+    fontSize: '0.95rem',
+    lineHeight: '1.6',
+    marginBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(2),
+    position: 'relative',
+    '&::before': {
+        content: '"•"',
+        position: 'absolute',
+        left: 0,
+        color: '#a67c52',
+        fontWeight: 'bold'
+    }
+}));
+
+const ModalOrnament = styled(Box)(({ theme }) => ({
+    width: '60px',
+    height: '2px',
+    background: '#a67c52',
+    margin: theme.spacing(3, 'auto'),
+    position: 'relative',
+    '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '8px',
+        height: '8px',
+        background: '#a67c52',
+        borderRadius: '50%'
+    }
+}));
+
 const Rooms = () => {
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
+
     const rooms = [
         {
             title: "Chambres Classiques",
             image: JasminSuitePicture,
             description: "Dans un décor oriental à la fois sobre, élégant et contemporain, les chambres Classiques incarnent le raffinement, le service et le confort emblématiques du Aladdin's Hotel.",
-            details: "Discover the perfect balance of traditional Moroccan elegance and modern comfort in our Classic Rooms."
+            details: "Discover the perfect balance of traditional Moroccan elegance and modern comfort in our Classic Rooms.",
+            features: [
+                "Superficie de 45 m² avec balcon privé",
+                "Salle de bain en marbre avec baignoire",
+                "Mobilier artisanal marocain authentique",
+                "Système de climatisation individualisé",
+                "Minibar et coffre-fort personnel",
+                "Vue sur les jardins luxuriants"
+            ],
+            amenities: "Télévision LED 55 pouces, Wi-Fi haut débit, service en chambre 24h/24, produits de beauté artisanaux"
         },
         {
             title: "Suites Garden View",
             image: JasminSuitePicture,
             description: "Offrant une vue panoramique sur les jardins luxuriants, ces suites spacieuses combinent l'art de vivre marocain avec un design contemporain raffiné.",
-            details: "Experience luxury redefined with panoramic garden views and exceptional amenities."
+            details: "Experience luxury redefined with panoramic garden views and exceptional amenities.",
+            features: [
+                "Superficie de 85 m² avec terrasse privée",
+                "Salon séparé avec cheminée traditionnelle",
+                "Salle de bain avec hammam privé",
+                "Dressing spacieux avec rangements sur mesure",
+                "Kitchenette équipée avec service à thé",
+                "Vue panoramique sur les jardins andalous"
+            ],
+            amenities: "Système audio Bose, télévision 65 pouces, accès prioritaire au spa, service de majordome sur demande"
         },
         {
             title: "Presidential Loft",
             image: JasminSuitePicture,
             description: "Le summum du luxe avec une terrasse privée, un salon spacieux et une décoration somptueuse inspirée des palais royaux marocains.",
-            details: "The ultimate in luxury accommodation with private terrace and royal Moroccan palace-inspired décor."
+            details: "The ultimate in luxury accommodation with private terrace and royal Moroccan palace-inspired décor.",
+            features: [
+                "Superficie de 150 m² sur deux niveaux",
+                "Terrasse privée de 50 m² avec jacuzzi",
+                "Salon de réception avec mobilier d'époque",
+                "Chambre parentale avec baldaquin royal",
+                "Salle de bain en tadelakt avec hammam",
+                "Bureau privé avec vue sur l'atlas"
+            ],
+            amenities: "Service de majordome personnel, accès VIP au spa, transfert privé inclus, champagne de bienvenue"
         },
         {
             title: "Desert Pavilion",
             image: JasminSuitePicture,
             description: "Pavillon privé au cœur des jardins, offrant une intimité absolue avec piscine privée et service de majordome personnalisé.",
-            details: "Private pavilion sanctuary with exclusive pool and personalized butler service."
+            details: "Private pavilion sanctuary with exclusive pool and personalized butler service.",
+            features: [
+                "Villa privée de 200 m² avec jardins",
+                "Piscine privée chauffée de 25 m²",
+                "Pavillon de massage avec thérapeute dédié",
+                "Cuisine entièrement équipée avec chef privé",
+                "Salon berbère traditionnel avec feu de camp",
+                "Parking privé et entrée indépendante"
+            ],
+            amenities: "Majordome personnel 24h/24, chef privé, voiture avec chauffeur, excursions désert incluses"
         }
     ];
-    
+
+    const handleOpenModal = (room) => {
+        setSelectedRoom(room);
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        setSelectedRoom(null);
+    };
+
     return (
         <StyledContainer>
             <Container maxWidth="lg">
@@ -260,7 +413,7 @@ const Rooms = () => {
                 {rooms.map((room, index) => (
                     <FullWidthContainer key={index}>
                         <RoomSection>
-                            <Grid container spacing={0} sx={{ width: '100%', margin: 0,  justifyContent: 'center' }}>
+                            <Grid container spacing={0} sx={{ width: '100%', margin: 0, justifyContent: 'center' }}>
                                 {/* Alternate layout */}
                                 {index % 2 === 0 ? (
                                     <>
@@ -272,7 +425,7 @@ const Rooms = () => {
                                                 <RoomDescription>
                                                     {room.description}
                                                 </RoomDescription>
-                                                <DiscoverButton>
+                                                <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
                                                 </DiscoverButton>
                                                 <ReserveButton>
@@ -319,7 +472,7 @@ const Rooms = () => {
                                                 <RoomDescription>
                                                     {room.description}
                                                 </RoomDescription>
-                                                <DiscoverButton>
+                                                <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
                                                 </DiscoverButton>
                                                 <ReserveButton>
@@ -334,6 +487,58 @@ const Rooms = () => {
                     </FullWidthContainer>
                 ))}
             </Box>
+
+            {/* Modal */}
+            <StyledModal
+                open={modalOpen}
+                onClose={handleCloseModal}
+                closeAfterTransition
+                BackdropComponent={Backdrop}
+                BackdropProps={{
+                    timeout: 500,
+                    sx: { backgroundColor: 'rgba(0, 0, 0, 0.7)' }
+                }}
+            >
+                <Fade in={modalOpen}>
+                    <ModalContent>
+                        <ModalCloseButton onClick={handleCloseModal}>
+                            ×
+                        </ModalCloseButton>
+                        
+                        {selectedRoom && (
+                            <>
+                                <ModalTitle>
+                                    {selectedRoom.title}
+                                </ModalTitle>
+                                
+                                <ModalDescription>
+                                    {selectedRoom.details}
+                                </ModalDescription>
+                                
+                                <ModalOrnament />
+                                
+                                <ModalFeaturesList>
+                                    {selectedRoom.features.map((feature, index) => (
+                                        <ModalFeature key={index}>
+                                            {feature}
+                                        </ModalFeature>
+                                    ))}
+                                </ModalFeaturesList>
+                                
+                                <ModalDescription sx={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#a67c52' }}>
+                                    {selectedRoom.amenities}
+                                </ModalDescription>
+                                
+                                <Box sx={{ textAlign: 'center', marginTop: 3 }}>
+                                    <ReserveButton>
+                                        Réservez cette chambre
+                                    </ReserveButton>
+                                </Box>
+                            </>
+                        )}
+                    </ModalContent>
+                </Fade>
+            </StyledModal>
         </StyledContainer>
     );
 }
