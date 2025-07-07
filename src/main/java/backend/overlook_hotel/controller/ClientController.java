@@ -11,7 +11,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/clients")
-@CrossOrigin(origins = "*") // à adapter si nécessaire
 public class ClientController {
 
     @Autowired

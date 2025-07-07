@@ -16,6 +16,7 @@ public class SecurityConfig {
                 auth.requestMatchers("/api/auth/**").permitAll();
                 auth.requestMatchers("/api/profiles/**").permitAll();
                 auth.requestMatchers("/api/user-role/**").permitAll();
+                auth.requestMatchers("/api/clients/**").permitAll();
                 auth.requestMatchers("/api/reservation/**").authenticated();
             })
             .formLogin(Customizer.withDefaults());
