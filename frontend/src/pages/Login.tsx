@@ -106,20 +106,48 @@ import React, { useState } from "react";
           }
       };
     const handleRegister = async () => {
-        try {
-            await axios.post(
-                `${API_BASE}/auth/v1/signup`,
-                registerData,
-                { headers: { "Content-Type": "application/json" } }
-            );
-            alert("Inscription réussie, vous pouvez vous connecter.");
-            setShowRegisterModal(false);
-            setUsername(registerData.email);
-            setPassword(registerData.password);
-        } catch {
-            console.error("Erreur lors de l'inscription :", Error);
-            alert("Erreur lors de l'inscription");
-        }
+      try {
+        // 1. Création du compte Supabase (email + password uniquement)
+        const { email, password } = registerData;
+        const signupRes = await axios.post(
+          `${SUPABASE_URL}/auth/v1/signup`,
+          { email, password },
+          {
+            headers: {
+              apikey: SUPABASE_KEY,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const id = signupRes.data.user?.id;
+
+        // 2. (Optionnel) Enregistrer les infos complémentaires dans ta base via ton backend
+        await axios.post(
+          `${SUPABASE_URL}/rest/v1/profil`,
+          {
+            id,
+            email,
+            first_name: registerData.firstName,
+            last_name: registerData.lastName,
+            age: registerData.age,
+            phone: registerData.phone,
+          },
+            {
+            headers: {
+                apikey: SUPABASE_KEY,
+                "Content-Type": "application/json",
+            },
+            }
+        );
+
+        alert("Inscription réussie, vous pouvez vous connecter.");
+        setShowRegisterModal(false);
+        setUsername(email);
+        setPassword(password);
+      } catch (error) {
+        console.error("Erreur lors de l'inscription :", error);
+        alert("Erreur lors de l'inscription");
+      }
     };
 
         return (
