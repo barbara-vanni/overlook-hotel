@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Box, Typography, List, ListItemText, Tab, Tabs, ListItemButton, Container } from "@mui/material";
-import {useNavigate} from "react-router-dom";
+import {
+    Box,
+    Typography,
+    List,
+    ListItemText,
+    Tab,
+    Tabs,
+    ListItemButton,
+    Container,
+    Button
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 interface Profile {
     id: string;
@@ -22,17 +32,36 @@ const Admin: React.FC = () => {
     const navigate = useNavigate();
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [clients, setClients] = useState<Client[]>([]);
-    const [tabIndex, setTabIndex] = useState(0); // 0 = Admin, 1 = Employés, 2 = Clients
+    const [tabIndex, setTabIndex] = useState(0);
+    const [userName, setUserName] = useState<string | null>(null);
 
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
     const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
     const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
     const accessToken = localStorage.getItem("accessToken");
+    const userId = localStorage.getItem("userId");
+    const userRole = localStorage.getItem("userRole");
 
     useEffect(() => {
+        if (userId && userRole) {
+            const profileUrl = userRole === "client"
+                ? `${SUPABASE_URL}/rest/v1/client?id=eq.${userId}`
+                : `${API_BASE}/api/profiles/${userId}`;
+
+            axios.get(profileUrl, {
+                headers: {
+                    apikey: SUPABASE_KEY,
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            }).then((res) => {
+                const data = Array.isArray(res.data) ? res.data[0] : res.data;
+                const fullName = `${data.first_name || data.firstName} ${data.last_name || data.lastName}`;
+                setUserName(fullName);
+            });
+        }
+
         axios.get(`${API_BASE}/api/profiles`)
-            .then((res) => setProfiles(res.data))
-            .catch((err) => console.error("Erreur profils :", err));
+            .then((res) => setProfiles(res.data));
 
         axios.get(`${SUPABASE_URL}/rest/v1/client`, {
             headers: {
@@ -48,16 +77,24 @@ const Admin: React.FC = () => {
                     email: client.email,
                 }));
                 setClients(normalizedClients);
-            })
-            .catch((err) => console.error("Erreur clients :", err));
+            });
     }, []);
 
     const handleClickUser = (id: string, type: "profile" | "client") => {
         navigate(`/${type}/${id}`);
     };
 
-    const admins = profiles.filter(p => p.role === "admin");
-    const employees = profiles.filter(p => p.role !== "admin");
+    const admins = profiles
+        .filter(p => p.role === "admin")
+        .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
+
+    const employees = profiles
+        .filter(p => p.role !== "admin")
+        .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
+
+    const sortedClients = clients
+        .slice()
+        .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
@@ -83,7 +120,7 @@ const Admin: React.FC = () => {
                 </ListItemButton>
             ));
         } else {
-            return clients.map((client) => (
+            return sortedClients.map((client) => (
                 <ListItemButton key={client.id} onClick={() => handleClickUser(client.id, "client")}>
                     <ListItemText
                         primary={`${client.firstName} ${client.lastName}`}
@@ -96,6 +133,14 @@ const Admin: React.FC = () => {
 
     return (
         <Container maxWidth="md" sx={{ mt: 16 }}>
+            {userName && (
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h5" color="text.secondary">
+                        Bienvenue <strong>{userName}</strong>
+                    </Typography>
+                </Box>
+            )}
+
             <Tabs value={tabIndex} onChange={handleTabChange} centered>
                 <Tab label="Administrateurs" />
                 <Tab label="Employés" />
@@ -111,6 +156,18 @@ const Admin: React.FC = () => {
                 <List>
                     {renderList()}
                 </List>
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                {tabIndex !== 0 && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => navigate(`/create/${tabIndex === 1 ? 'profile' : 'client'}`)}
+                    >
+                        Créer un {tabIndex === 1 ? "employé" : "client"}
+                    </Button>
+                )}
             </Box>
         </Container>
     );
