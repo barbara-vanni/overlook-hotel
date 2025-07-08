@@ -116,7 +116,9 @@ const FormulaireCreation: React.FC = () => {
             }
 
             alert(`${type === "client" ? "Client" : "Employé"} créé avec succès !`);
-            navigate("/admin");
+            const role = localStorage.getItem("userRole");
+            navigate(role === "admin" ? "/admin" : "/employee");
+
 
         } catch (error) {
             console.error("Erreur lors de la création :", error);

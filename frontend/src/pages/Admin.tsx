@@ -132,42 +132,60 @@ const Admin: React.FC = () => {
     };
 
     return (
-        <Container maxWidth="md" sx={{ mt: 16 }}>
-            {userName && (
-                <Box sx={{ mb: 2 }}>
-                    <Typography variant="h5" color="text.secondary">
+        <Container
+            maxWidth="md"
+            sx={{
+                mt: 16,
+                height: 'calc(100vh - 128px)',
+                display: 'flex',
+                flexDirection: 'column'
+            }}
+        >
+            <Box
+                sx={{
+                    position: 'sticky',
+                    top: 124,
+                    backgroundColor: 'rgba(255, 248, 220, 0.95)',
+                    zIndex: 2,
+                    pb: 2
+                }}
+            >
+                {userName && (
+                    <Typography variant="h5" color="text.secondary" sx={{ mb: 1 }}>
                         Bienvenue <strong>{userName}</strong>
                     </Typography>
+                )}
+
+                <Tabs value={tabIndex} onChange={handleTabChange} centered>
+                    <Tab label="Administrateurs" />
+                    <Tab label="Employés" />
+                    <Tab label="Clients" />
+                </Tabs>
+
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    {tabIndex !== 0 && (
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() =>
+                                navigate(`/create/${tabIndex === 1 ? 'profile' : 'client'}`)
+                            }
+                        >
+                            Créer un {tabIndex === 1 ? "employé" : "client"}
+                        </Button>
+                    )}
                 </Box>
-            )}
 
-            <Tabs value={tabIndex} onChange={handleTabChange} centered>
-                <Tab label="Administrateurs" />
-                <Tab label="Employés" />
-                <Tab label="Clients" />
-            </Tabs>
-
-            <Box sx={{ mt: 4 }}>
-                <Typography variant="h5" gutterBottom>
+                <Typography variant="h5" sx={{ mt: 2 }}>
                     {tabIndex === 0 && "Liste des administrateurs"}
                     {tabIndex === 1 && "Liste des employés"}
                     {tabIndex === 2 && "Liste des clients"}
                 </Typography>
-                <List>
-                    {renderList()}
-                </List>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                {tabIndex !== 0 && (
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => navigate(`/create/${tabIndex === 1 ? 'profile' : 'client'}`)}
-                    >
-                        Créer un {tabIndex === 1 ? "employé" : "client"}
-                    </Button>
-                )}
+            {/* Liste scrollable */}
+            <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
+                <List>{renderList()}</List>
             </Box>
         </Container>
     );
