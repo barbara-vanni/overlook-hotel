@@ -119,26 +119,28 @@ import React, { useState } from "react";
             },
           }
         );
-        const id = signupRes.data.user?.id;
+          const id = signupRes.data.user?.id;
+          const accessToken = signupRes.data.access_token;
 
-        // 2. (Optionnel) Enregistrer les infos complémentaires dans ta base via ton backend
-        await axios.post(
-          `${SUPABASE_URL}/rest/v1/profil`,
-          {
-            id,
-            email,
-            first_name: registerData.firstName,
-            last_name: registerData.lastName,
-            age: registerData.age,
-            phone: registerData.phone,
-          },
-            {
-            headers: {
-                apikey: SUPABASE_KEY,
-                "Content-Type": "application/json",
-            },
-            }
-        );
+          await axios.post(
+              `${SUPABASE_URL}/rest/v1/client`,
+              {
+                  id,
+                  email,
+                  first_name: registerData.firstName,
+                  last_name: registerData.lastName,
+                  age: registerData.age,
+                  phone: registerData.phone,
+              },
+              {
+                  headers: {
+                      apikey: SUPABASE_KEY,
+                      Authorization: `Bearer ${accessToken}`, // ← requis pour RLS
+                      "Content-Type": "application/json",
+                      Prefer: "return=representation" // pour avoir le retour complet
+                  },
+              }
+          );
 
         alert("Inscription réussie, vous pouvez vous connecter.");
         setShowRegisterModal(false);
