@@ -6,6 +6,8 @@ import React, { useState } from "react";
       import Button from "@mui/material/Button";
       import Typography from "@mui/material/Typography";
       import Modal from "@mui/material/Modal";
+      import Container from "@mui/material/Container";
+      import Paper from "@mui/material/Paper";  
 
     const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
     const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -19,6 +21,7 @@ import React, { useState } from "react";
                 border: "2px solid #000",
                 boxShadow: 24,
                 p: 4,
+                
               };
 
       const LoginModal: React.FC = () => {
@@ -88,47 +91,86 @@ import React, { useState } from "react";
           };
 
         return (
-          <div>
-              <p>Vous devez être connecté pour réserver une chambre</p>
-            <Button variant="outlined" onClick={handleOpen}>
-              Connexion
-            </Button>
-              <Button variant="outlined" onClick={() => window.location.href = "/register"}>
-                S'inscrire
-                </Button>
-            <Modal
-              open={open}
-              onClose={handleClose}
-              aria-labelledby="modal-modal-title"
-              aria-describedby="modal-modal-description"
-            >
-              <Box sx={style}>
-                <Typography id="modal-modal-title" variant="h6" component="h2">
-                  Connexion
-                </Typography>
-                <Box>
-                  <input
-                    type="text"
-                    placeholder="Nom d'utilisateur"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-                  />
-                  <input
-                    type="password"
-                    placeholder="Mot de passe"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-                  />
-                  <Button variant="contained" onClick={handleLogin} style={{ width: "100%" }}>
-                    Se connecter
-                  </Button>
-                </Box>
-              </Box>
-            </Modal>
-          </div>
-        );
-      };
+          <Container
+              maxWidth="sm"
+              sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: '80vh'
+              }}
+          >
+              <Paper
+                  elevation={3}
+                  sx={{
+                      p: 4,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      width: '100%'
+                  }}
+              >
+                  <Typography variant="h5" gutterBottom>
+                      Bienvenue à l'Hôtel Overlook
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
+                      Vous devez être connecté pour réserver une chambre
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                      <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={handleOpen}
+                          fullWidth
+                      >
+                          Connexion
+                      </Button>
+                      <Button
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => window.location.href = "/register"}
+                          fullWidth
+                      >
+                          S'inscrire
+                      </Button>
+                  </Box>
+              </Paper>
+
+              <Modal
+                  open={open}
+                  onClose={handleClose}
+                  aria-labelledby="modal-modal-title"
+                  aria-describedby="modal-modal-description"
+              >
+                  <Box sx={style}>
+                      <Typography id="modal-modal-title" variant="h6" component="h2">
+                          Connexion
+                      </Typography>
+                      <Box>
+                          <input
+                              type="text"
+                              placeholder="Nom d'utilisateur"
+                              value={username}
+                              onChange={(e) => setUsername(e.target.value)}
+                              style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+                          />
+                          <input
+                              type="password"
+                              placeholder="Mot de passe"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+                          />
+                          <Button variant="contained" onClick={handleLogin} style={{ width: "100%" }}>
+                              Se connecter
+                          </Button>
+                      </Box>
+                  </Box>
+              </Modal>
+          </Container>
+      );
+    };
 
       export default LoginModal;

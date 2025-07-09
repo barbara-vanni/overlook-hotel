@@ -1,6 +1,7 @@
-import RoomCard from "../components/RoomCard/RoomCard.tsx";
+import React, { useState, useEffect } from 'react';
+// import RoomCard from "../components/RoomCard/RoomCard.tsx";
 import JasminSuitePicture from "../assets/image/JasminSuitePicture.jpg";
-import { Grid, Container, Typography, Box, Button } from "@mui/material";
+import { Grid, Container, Typography, Box, Button, Modal, Fade, Backdrop } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
 const StyledContainer = styled(Box)(({ theme }) => ({
@@ -153,6 +154,7 @@ const DiscoverButton = styled(Button)(({ theme }) => ({
     textTransform: 'uppercase',
     fontWeight: 400,
     marginBottom: theme.spacing(3),
+    position: 'relative',
     '&:hover': {
         backgroundColor: 'transparent',
         textDecoration: 'underline'
@@ -210,38 +212,153 @@ const FullWidthContainer = styled(Box)({
     alignItems: 'center',
     display: 'flex',
     justifyContent: 'center',
-    // marginLeft: 'calc(-50vw + 50%)',
-    // position: 'relative'
 });
 
+// Modal Styles
+const StyledModal = styled(Modal)(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+}));
+
+const ModalContent = styled(Box)(({ theme }) => ({
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    boxShadow: '0 24px 48px rgba(0, 0, 0, 0.15)',
+    padding: theme.spacing(6),
+    maxWidth: '600px',
+    width: '90%',
+    maxHeight: '80vh',
+    overflow: 'auto',
+    position: 'relative',
+    border: '1px solid #d4c4a8',
+    [theme.breakpoints.down('md')]: {
+        padding: theme.spacing(4),
+        maxWidth: '90%'
+    }
+}));
+
+const ModalCloseButton = styled(Button)(({ theme }) => ({
+    position: 'absolute',
+    top: theme.spacing(2),
+    right: theme.spacing(2),
+    minWidth: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: 'transparent',
+    color: '#a67c52',
+    fontSize: '1.5rem',
+    '&:hover': {
+        backgroundColor: '#f0ede8',
+        color: '#8b6342'
+    }
+}));
+
+const ModalTitle = styled(Typography)(({ theme }) => ({
+    fontFamily: '"Playfair Display", serif',
+    fontWeight: 400,
+    color: '#a67c52',
+    fontSize: '2rem',
+    letterSpacing: '2px',
+    marginBottom: theme.spacing(3),
+    textAlign: 'center',
+    [theme.breakpoints.down('md')]: {
+        fontSize: '1.5rem'
+    }
+}));
+
+const ModalDescription = styled(Typography)(({ theme }) => ({
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: 300,
+    color: '#2c2c2c',
+    fontSize: '1rem',
+    lineHeight: '1.8',
+    marginBottom: theme.spacing(3),
+    textAlign: 'center'
+}));
+
+const ModalFeaturesList = styled(Box)(({ theme }) => ({
+    marginBottom: theme.spacing(4)
+}));
+
+const ModalFeature = styled(Typography)(({ theme }) => ({
+    fontFamily: '"Inter", sans-serif',
+    fontWeight: 300,
+    color: '#2c2c2c',
+    fontSize: '0.95rem',
+    lineHeight: '1.6',
+    marginBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(2),
+    position: 'relative',
+    '&::before': {
+        content: '"•"',
+        position: 'absolute',
+        left: 0,
+        color: '#a67c52',
+        fontWeight: 'bold'
+    }
+}));
+
+const ModalOrnament = styled(Box)(({ theme }) => ({
+    width: '60px',
+    height: '2px',
+    background: '#a67c52',
+    margin: theme.spacing(3, 'auto'),
+    position: 'relative',
+    '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '8px',
+        height: '8px',
+        background: '#a67c52',
+        borderRadius: '50%'
+    }
+}));
+
 const Rooms = () => {
-    const rooms = [
-        {
-            title: "Chambres Classiques",
-            image: JasminSuitePicture,
-            description: "Dans un décor oriental à la fois sobre, élégant et contemporain, les chambres Classiques incarnent le raffinement, le service et le confort emblématiques du Aladdin's Hotel.",
-            details: "Discover the perfect balance of traditional Moroccan elegance and modern comfort in our Classic Rooms."
-        },
-        {
-            title: "Suites Garden View",
-            image: JasminSuitePicture,
-            description: "Offrant une vue panoramique sur les jardins luxuriants, ces suites spacieuses combinent l'art de vivre marocain avec un design contemporain raffiné.",
-            details: "Experience luxury redefined with panoramic garden views and exceptional amenities."
-        },
-        {
-            title: "Presidential Loft",
-            image: JasminSuitePicture,
-            description: "Le summum du luxe avec une terrasse privée, un salon spacieux et une décoration somptueuse inspirée des palais royaux marocains.",
-            details: "The ultimate in luxury accommodation with private terrace and royal Moroccan palace-inspired décor."
-        },
-        {
-            title: "Desert Pavilion",
-            image: JasminSuitePicture,
-            description: "Pavillon privé au cœur des jardins, offrant une intimité absolue avec piscine privée et service de majordome personnalisé.",
-            details: "Private pavilion sanctuary with exclusive pool and personalized butler service."
-        }
-    ];
-    
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch('http://localhost:8080/overlook_hotel/api/rooms')
+            .then(response => response.json())
+            .then(data => {
+                setRooms(data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching rooms:', error);
+                setLoading(false);
+            });
+    }, []);
+
+    const handleOpenModal = (room) => {
+        setSelectedRoom(room);
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        setSelectedRoom(null);
+    };
+
+    if (loading) {
+        return (
+            <StyledContainer>
+                <Container maxWidth="lg">
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+                        <Typography>Chargement des chambres...</Typography>
+                    </Box>
+                </Container>
+            </StyledContainer>
+        );
+    }
+
     return (
         <StyledContainer>
             <Container maxWidth="lg">
@@ -258,21 +375,21 @@ const Rooms = () => {
 
             <Box sx={{ width: '100%' }}>
                 {rooms.map((room, index) => (
-                    <FullWidthContainer key={index}>
+                    <FullWidthContainer key={room.id || index}>
                         <RoomSection>
-                            <Grid container spacing={0} sx={{ width: '100%', margin: 0,  justifyContent: 'center' }}>
-                                {/* Alternate layout */}
+                            <Grid container spacing={0} sx={{ width: '100%', margin: 0, justifyContent: 'center' }}>
                                 {index % 2 === 0 ? (
                                     <>
                                         <Grid item xs={12} md={5}>
                                             <RoomContent>
                                                 <RoomTitle>
-                                                    {room.title}
+                                                    {room.type || room.title}
                                                 </RoomTitle>
                                                 <RoomDescription>
-                                                    {room.description}
+                                                    Capacité: {room.capacity}<br />
+                                                    Statut: {room.status}
                                                 </RoomDescription>
-                                                <DiscoverButton>
+                                                <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
                                                 </DiscoverButton>
                                                 <ReserveButton>
@@ -286,8 +403,8 @@ const Rooms = () => {
                                                     ‹
                                                 </NavigationArrow>
                                                 <RoomImage 
-                                                    src={room.image} 
-                                                    alt={room.title}
+                                                    src={JasminSuitePicture}
+                                                    alt={room.type || room.title}
                                                 />
                                                 <NavigationArrow className="right">
                                                     ›
@@ -303,8 +420,8 @@ const Rooms = () => {
                                                     ‹
                                                 </NavigationArrow>
                                                 <RoomImage 
-                                                    src={room.image} 
-                                                    alt={room.title}
+                                                    src={JasminSuitePicture}
+                                                    alt={room.type || room.title}
                                                 />
                                                 <NavigationArrow className="right">
                                                     ›
@@ -314,12 +431,13 @@ const Rooms = () => {
                                         <Grid item xs={12} md={5}>
                                             <RoomContent>
                                                 <RoomTitle>
-                                                    {room.title}
+                                                    {room.type || room.title}
                                                 </RoomTitle>
                                                 <RoomDescription>
-                                                    {room.description}
+                                                    Capacité: {room.capacity}<br />
+                                                    Statut: {room.status}
                                                 </RoomDescription>
-                                                <DiscoverButton>
+                                                <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
                                                 </DiscoverButton>
                                                 <ReserveButton>
@@ -334,6 +452,49 @@ const Rooms = () => {
                     </FullWidthContainer>
                 ))}
             </Box>
+
+            {/* Modal */}
+            <StyledModal
+                open={modalOpen}
+                onClose={handleCloseModal}
+                closeAfterTransition
+                BackdropComponent={Backdrop}
+                BackdropProps={{
+                    timeout: 500,
+                    sx: { backgroundColor: 'rgba(0, 0, 0, 0.7)' }
+                }}
+            >
+                <Fade in={modalOpen}>
+                    <ModalContent>
+                        <ModalCloseButton onClick={handleCloseModal}>
+                            ×
+                        </ModalCloseButton>
+                        
+                        {selectedRoom && (
+                            <>
+                                <ModalTitle>
+                                    {selectedRoom.type || selectedRoom.title}
+                                </ModalTitle>
+                                
+                                <ModalDescription>
+                                    Capacité: {selectedRoom.capacity}<br />
+                                    Statut: {selectedRoom.status}
+                                </ModalDescription>
+                                
+                                <ModalOrnament />
+                                
+                                {/* You can add more details here if your backend returns them */}
+                                
+                                <Box sx={{ textAlign: 'center', marginTop: 3 }}>
+                                    <ReserveButton>
+                                        Réservez cette chambre
+                                    </ReserveButton>
+                                </Box>
+                            </>
+                        )}
+                    </ModalContent>
+                </Fade>
+            </StyledModal>
         </StyledContainer>
     );
 }
