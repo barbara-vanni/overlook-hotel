@@ -10,7 +10,7 @@ import React, { useState } from "react";
 
     const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
     const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    const API_BASE = import.meta.env.VITE_API_BASE_URL;
+    // const API_BASE = import.meta.env.VITE_API_BASE_URL;
     const style = {
                 position: "absolute",
                 top: "50%",
@@ -24,7 +24,7 @@ import React, { useState } from "react";
               };
 
     const LoginModal: React.FC = () => {
-    const [open, setOpen] = useState(false);
+    const [_, setOpen] = useState(false);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -39,7 +39,6 @@ import React, { useState } from "react";
     const navigate = useNavigate();
 
 
-    const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
 
@@ -61,7 +60,7 @@ import React, { useState } from "react";
 
               const accessToken = response.data.access_token;
               localStorage.setItem("accessToken", accessToken);
-              console.log("accessToken", accessToken);
+              // console.log("accessToken", accessToken);
 
               // Décoder le token pour extraire l’ID Supabase
               const decoded: any = jwtDecode(accessToken);
@@ -74,7 +73,7 @@ import React, { useState } from "react";
                       headers: { Authorization: `Bearer ${accessToken}` },
                   }
               );
-              console.log("Réponse du backend :", profileRes.data);
+              // console.log("Réponse du backend :", profileRes.data);
 
               const role = profileRes.data.role;
               localStorage.setItem("userId", userId);
@@ -160,7 +159,7 @@ import React, { useState } from "react";
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    minHeight: '80vh'
+                    minHeight: '100vh'
                 }}
             >
                 <Paper
