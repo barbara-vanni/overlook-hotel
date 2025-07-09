@@ -3,13 +3,18 @@ import axios from "axios";
 import {
     Box,
     Typography,
-    List,
-    ListItemText,
+    Table,
+    TableCell,
+    TableBody,
+    TableHead,
+    TableContainer,
+    TableRow,
+    Paper,
     Tab,
     Tabs,
-    ListItemButton,
     Container,
-    Button
+    Button,
+    Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -34,6 +39,7 @@ const Admin: React.FC = () => {
     const [clients, setClients] = useState<Client[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
     const [userName, setUserName] = useState<string | null>(null);
+
 
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
     const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -100,43 +106,43 @@ const Admin: React.FC = () => {
         setTabIndex(newValue);
     };
 
-    const renderList = () => {
-        if (tabIndex === 0) {
-            return admins.map((profile) => (
-                <ListItemButton key={profile.id} onClick={() => handleClickUser(profile.id, "profile")}>
-                    <ListItemText
-                        primary={`${profile.firstName} ${profile.lastName}`}
-                        secondary={`${profile.email} (${profile.role})`}
-                    />
-                </ListItemButton>
-            ));
-        } else if (tabIndex === 1) {
-            return employees.map((profile) => (
-                <ListItemButton key={profile.id} onClick={() => handleClickUser(profile.id, "profile")}>
-                    <ListItemText
-                        primary={`${profile.firstName} ${profile.lastName}`}
-                        secondary={`${profile.email} (${profile.role})`}
-                    />
-                </ListItemButton>
-            ));
-        } else {
-            return sortedClients.map((client) => (
-                <ListItemButton key={client.id} onClick={() => handleClickUser(client.id, "client")}>
-                    <ListItemText
-                        primary={`${client.firstName} ${client.lastName}`}
-                        secondary={client.email}
-                    />
-                </ListItemButton>
-            ));
-        }
-    };
+    // const renderList = () => {
+    //     if (tabIndex === 0) {
+    //         return admins.map((profile) => (
+    //             <ListItemButton key={profile.id} onClick={() => handleClickUser(profile.id, "profile")}>
+    //                 <ListItemText
+    //                     primary={`${profile.firstName} ${profile.lastName}`}
+    //                     secondary={`${profile.email} (${profile.role})`}
+    //                 />
+    //             </ListItemButton>
+    //         ));
+    //     } else if (tabIndex === 1) {
+    //         return employees.map((profile) => (
+    //             <ListItemButton key={profile.id} onClick={() => handleClickUser(profile.id, "profile")}>
+    //                 <ListItemText
+    //                     primary={`${profile.firstName} ${profile.lastName}`}
+    //                     secondary={`${profile.email} (${profile.role})`}
+    //                 />
+    //             </ListItemButton>
+    //         ));
+    //     } else {
+    //         return sortedClients.map((client) => (
+    //             <ListItemButton key={client.id} onClick={() => handleClickUser(client.id, "client")}>
+    //                 <ListItemText
+    //                     primary={`${client.firstName} ${client.lastName}`}
+    //                     secondary={client.email}
+    //                 />
+    //             </ListItemButton>
+    //         ));
+    //     }
+    // };
 
     return (
         <Container
-            maxWidth="md"
+            maxWidth="xl"
             sx={{
-                mt: 16,
-                height: 'calc(100vh - 128px)',
+                mt: 22,
+                // height: 'calc(100vh - 128px)',
                 display: 'flex',
                 flexDirection: 'column'
             }}
@@ -145,27 +151,40 @@ const Admin: React.FC = () => {
                 sx={{
                     position: 'sticky',
                     top: 124,
-                    backgroundColor: 'rgba(255, 248, 220, 0.95)',
+                    backgroundColor: '#f0ede8',
                     zIndex: 2,
-                    pb: 2
+                    pb: 2,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems : 'center'
                 }}
             >
                 {userName && (
-                    <Typography variant="h5" color="text.secondary" sx={{ mb: 1 }}>
+                    <Typography variant="h5" color="text.secondary" sx={{}}>
                         Bienvenue <strong>{userName}</strong>
                     </Typography>
                 )}
 
-                <Tabs value={tabIndex} onChange={handleTabChange} centered>
+                <Tabs value={tabIndex} onChange={handleTabChange}>
                     <Tab label="Administrateurs" />
                     <Tab label="Employés" />
                     <Tab label="Clients" />
                 </Tabs>
+            </Box>
+            <Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Divider sx={{m:3}}>
+                </Divider>
+
+                <Box sx={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', m: 2 }}>
+                    <Typography variant="h5" sx={{ mt: 2 }}>
+                        {tabIndex === 0 && "Liste des administrateurs"}
+                        {tabIndex === 1 && "Liste des employés"}
+                        {tabIndex === 2 && "Liste des clients"}
+                    </Typography>
                     {tabIndex !== 0 && (
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             color="primary"
                             onClick={() =>
                                 navigate(`/create/${tabIndex === 1 ? 'profile' : 'client'}`)
@@ -174,18 +193,41 @@ const Admin: React.FC = () => {
                             Créer un {tabIndex === 1 ? "employé" : "client"}
                         </Button>
                     )}
+
                 </Box>
 
-                <Typography variant="h5" sx={{ mt: 2 }}>
-                    {tabIndex === 0 && "Liste des administrateurs"}
-                    {tabIndex === 1 && "Liste des employés"}
-                    {tabIndex === 2 && "Liste des clients"}
-                </Typography>
+
             </Box>
 
-            {/* Liste scrollable */}
-            <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
-                <List>{renderList()}</List>
+            <Box>
+                <TableContainer component={Paper} sx={{ boxShadow: 3, maxHeight : 400 }}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Nom</TableCell>
+                                <TableCell>Email</TableCell>
+                                {tabIndex !== 2 && <TableCell>Rôle</TableCell>}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {(tabIndex === 0 ? admins : tabIndex === 1 ? employees : sortedClients).map((item, idx) => (
+                                <TableRow
+                                    key={item.id}
+                                    hover
+                                    sx={{
+                                        backgroundColor: idx % 2 === 0 ? "#fff" : "#f0ede8",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => handleClickUser(item.id, tabIndex === 2 ? "client" : "profile")}
+                                >
+                                    <TableCell>{item.firstName} {item.lastName}</TableCell>
+                                    <TableCell>{item.email}</TableCell>
+                                    {tabIndex !== 2 && <TableCell>{(item as Profile).role}</TableCell>}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             </Box>
         </Container>
     );
