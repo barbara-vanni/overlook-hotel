@@ -51,7 +51,8 @@ const UserDashboard: React.FC = () => {
     }, [id, type]);
 
     const handleBack = () => {
-        navigate("/admin"); // navigation fixe vers l’annuaire
+        const role = localStorage.getItem("userRole");
+        navigate(role === "admin" ? "/admin" : "/employee");
     };
 
     if (!user) {

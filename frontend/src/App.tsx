@@ -10,21 +10,23 @@ import Admin from "./pages/Admin.tsx";
 import Employee from "./pages/Employee.tsx";
 import Footer from "./components/FooterModule/Footer.tsx";
 import UserDashboard from "./pages/UserDashboard.tsx";
+import FormulaireCreation from "./pages/CreateForm.tsx";
 
 function App() {
     return (
         <Router>
             <Header />
             <main>
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/reservations" element={<Reservations />} />
-                    <Route path="/rooms" element={<Rooms/>} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/:type/:id" element={<UserDashboard />} />
-                    <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
-                    <Route path="/employee" element={<PrivateRoute><Employee /></PrivateRoute>} />
-                </Routes>
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/reservations" element={<Reservations />} />
+                <Route path="/rooms" element={<Rooms/>} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/create/:type" element={<FormulaireCreation />} />
+                <Route path="/:type/:id" element={<UserDashboard />} />
+                <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+                <Route path="/employee" element={<PrivateRoute><Employee /></PrivateRoute>} />
+            </Routes>
             </main>
             <Footer />
         </Router>
