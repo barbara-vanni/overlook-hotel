@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import RoomCard from "../components/RoomCard/RoomCard.tsx";
+import React, { useState, useEffect } from 'react';
+// import RoomCard from "../components/RoomCard/RoomCard.tsx";
 import JasminSuitePicture from "../assets/image/JasminSuitePicture.jpg";
 import { Grid, Container, Typography, Box, Button, Modal, Fade, Backdrop } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -321,69 +321,21 @@ const ModalOrnament = styled(Box)(({ theme }) => ({
 const Rooms = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState(null);
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const rooms = [
-        {
-            title: "Chambres Classiques",
-            image: JasminSuitePicture,
-            description: "Dans un décor oriental à la fois sobre, élégant et contemporain, les chambres Classiques incarnent le raffinement, le service et le confort emblématiques du Aladdin's Hotel.",
-            details: "Discover the perfect balance of traditional Moroccan elegance and modern comfort in our Classic Rooms.",
-            features: [
-                "Superficie de 45 m² avec balcon privé",
-                "Salle de bain en marbre avec baignoire",
-                "Mobilier artisanal marocain authentique",
-                "Système de climatisation individualisé",
-                "Minibar et coffre-fort personnel",
-                "Vue sur les jardins luxuriants"
-            ],
-            amenities: "Télévision LED 55 pouces, Wi-Fi haut débit, service en chambre 24h/24, produits de beauté artisanaux"
-        },
-        {
-            title: "Suites Garden View",
-            image: JasminSuitePicture,
-            description: "Offrant une vue panoramique sur les jardins luxuriants, ces suites spacieuses combinent l'art de vivre marocain avec un design contemporain raffiné.",
-            details: "Experience luxury redefined with panoramic garden views and exceptional amenities.",
-            features: [
-                "Superficie de 85 m² avec terrasse privée",
-                "Salon séparé avec cheminée traditionnelle",
-                "Salle de bain avec hammam privé",
-                "Dressing spacieux avec rangements sur mesure",
-                "Kitchenette équipée avec service à thé",
-                "Vue panoramique sur les jardins andalous"
-            ],
-            amenities: "Système audio Bose, télévision 65 pouces, accès prioritaire au spa, service de majordome sur demande"
-        },
-        {
-            title: "Presidential Loft",
-            image: JasminSuitePicture,
-            description: "Le summum du luxe avec une terrasse privée, un salon spacieux et une décoration somptueuse inspirée des palais royaux marocains.",
-            details: "The ultimate in luxury accommodation with private terrace and royal Moroccan palace-inspired décor.",
-            features: [
-                "Superficie de 150 m² sur deux niveaux",
-                "Terrasse privée de 50 m² avec jacuzzi",
-                "Salon de réception avec mobilier d'époque",
-                "Chambre parentale avec baldaquin royal",
-                "Salle de bain en tadelakt avec hammam",
-                "Bureau privé avec vue sur l'atlas"
-            ],
-            amenities: "Service de majordome personnel, accès VIP au spa, transfert privé inclus, champagne de bienvenue"
-        },
-        {
-            title: "Desert Pavilion",
-            image: JasminSuitePicture,
-            description: "Pavillon privé au cœur des jardins, offrant une intimité absolue avec piscine privée et service de majordome personnalisé.",
-            details: "Private pavilion sanctuary with exclusive pool and personalized butler service.",
-            features: [
-                "Villa privée de 200 m² avec jardins",
-                "Piscine privée chauffée de 25 m²",
-                "Pavillon de massage avec thérapeute dédié",
-                "Cuisine entièrement équipée avec chef privé",
-                "Salon berbère traditionnel avec feu de camp",
-                "Parking privé et entrée indépendante"
-            ],
-            amenities: "Majordome personnel 24h/24, chef privé, voiture avec chauffeur, excursions désert incluses"
-        }
-    ];
+    useEffect(() => {
+        fetch('http://localhost:8080/overlook_hotel/api/rooms')
+            .then(response => response.json())
+            .then(data => {
+                setRooms(data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching rooms:', error);
+                setLoading(false);
+            });
+    }, []);
 
     const handleOpenModal = (room) => {
         setSelectedRoom(room);
@@ -394,6 +346,18 @@ const Rooms = () => {
         setModalOpen(false);
         setSelectedRoom(null);
     };
+
+    if (loading) {
+        return (
+            <StyledContainer>
+                <Container maxWidth="lg">
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+                        <Typography>Chargement des chambres...</Typography>
+                    </Box>
+                </Container>
+            </StyledContainer>
+        );
+    }
 
     return (
         <StyledContainer>
@@ -411,19 +375,19 @@ const Rooms = () => {
 
             <Box sx={{ width: '100%' }}>
                 {rooms.map((room, index) => (
-                    <FullWidthContainer key={index}>
+                    <FullWidthContainer key={room.id || index}>
                         <RoomSection>
                             <Grid container spacing={0} sx={{ width: '100%', margin: 0, justifyContent: 'center' }}>
-                                {/* Alternate layout */}
                                 {index % 2 === 0 ? (
                                     <>
                                         <Grid item xs={12} md={5}>
                                             <RoomContent>
                                                 <RoomTitle>
-                                                    {room.title}
+                                                    {room.type || room.title}
                                                 </RoomTitle>
                                                 <RoomDescription>
-                                                    {room.description}
+                                                    Capacité: {room.capacity}<br />
+                                                    Statut: {room.status}
                                                 </RoomDescription>
                                                 <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
@@ -439,8 +403,8 @@ const Rooms = () => {
                                                     ‹
                                                 </NavigationArrow>
                                                 <RoomImage 
-                                                    src={room.image} 
-                                                    alt={room.title}
+                                                    src={JasminSuitePicture}
+                                                    alt={room.type || room.title}
                                                 />
                                                 <NavigationArrow className="right">
                                                     ›
@@ -456,8 +420,8 @@ const Rooms = () => {
                                                     ‹
                                                 </NavigationArrow>
                                                 <RoomImage 
-                                                    src={room.image} 
-                                                    alt={room.title}
+                                                    src={JasminSuitePicture}
+                                                    alt={room.type || room.title}
                                                 />
                                                 <NavigationArrow className="right">
                                                     ›
@@ -467,10 +431,11 @@ const Rooms = () => {
                                         <Grid item xs={12} md={5}>
                                             <RoomContent>
                                                 <RoomTitle>
-                                                    {room.title}
+                                                    {room.type || room.title}
                                                 </RoomTitle>
                                                 <RoomDescription>
-                                                    {room.description}
+                                                    Capacité: {room.capacity}<br />
+                                                    Statut: {room.status}
                                                 </RoomDescription>
                                                 <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
@@ -508,26 +473,17 @@ const Rooms = () => {
                         {selectedRoom && (
                             <>
                                 <ModalTitle>
-                                    {selectedRoom.title}
+                                    {selectedRoom.type || selectedRoom.title}
                                 </ModalTitle>
                                 
                                 <ModalDescription>
-                                    {selectedRoom.details}
+                                    Capacité: {selectedRoom.capacity}<br />
+                                    Statut: {selectedRoom.status}
                                 </ModalDescription>
                                 
                                 <ModalOrnament />
                                 
-                                <ModalFeaturesList>
-                                    {selectedRoom.features.map((feature, index) => (
-                                        <ModalFeature key={index}>
-                                            {feature}
-                                        </ModalFeature>
-                                    ))}
-                                </ModalFeaturesList>
-                                
-                                <ModalDescription sx={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#a67c52' }}>
-                                    {selectedRoom.amenities}
-                                </ModalDescription>
+                                {/* You can add more details here if your backend returns them */}
                                 
                                 <Box sx={{ textAlign: 'center', marginTop: 3 }}>
                                     <ReserveButton>

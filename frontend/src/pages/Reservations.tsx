@@ -83,13 +83,13 @@ const Ornament = styled(Box)(({ theme }) => ({
 
 const ReservationForm = styled(Box)(({ theme }) => ({
     backgroundColor: '#f0ede8',
-    padding: theme.spacing(8, 6),
+    padding: theme.spacing(12, 10),
     margin: theme.spacing(4, 'auto'),
-    maxWidth: '900px',
+    maxWidth: '1200px',
     textAlign: 'center',
     [theme.breakpoints.down('md')]: {
-        padding: theme.spacing(4, 3),
-        margin: theme.spacing(2, 'auto')
+        padding: theme.spacing(6, 2),
+        maxWidth: '98vw'
     }
 }));
 
@@ -137,6 +137,13 @@ const StyledSelect = styled(Select)(({ theme }) => ({
     borderRadius: 0,
     backgroundColor: '#ffffff',
     fontFamily: '"Inter", sans-serif',
+    minHeight: '80px', // Make the box taller
+    height: '80px',    // Make the box taller
+    '& .MuiSelect-select': {
+        minHeight: '80px', // Make the inner area taller
+        display: 'flex',
+        alignItems: 'center'
+    },
     '& fieldset': {
         borderColor: '#d4c4a8',
         borderWidth: '1px'
@@ -211,6 +218,13 @@ const FormDescription = styled(Typography)(({ theme }) => ({
 }));
 
 const Reservations = () => {
+    const roomTypes = [
+        'Chambres Classiques',
+        'Suites Garden View',
+        'Presidential Loft',
+        'Desert Pavilion'
+    ];
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -218,17 +232,10 @@ const Reservations = () => {
         phone: '',
         checkIn: '',
         checkOut: '',
-        roomType: '',
+        roomType: roomTypes[0], 
         guests: 1,
         specialRequests: ''
     });
-
-    const roomTypes = [
-        'Chambres Classiques',
-        'Suites Garden View',
-        'Presidential Loft',
-        'Desert Pavilion'
-    ];
 
     const handleInputChange = (field: string) => (event: any) => {
         setFormData({
@@ -261,7 +268,7 @@ const Reservations = () => {
                         Notre équipe vous contactera dans les plus brefs délais pour confirmer votre réservation.
                     </FormDescription>
                     
-                    <Grid container spacing={3} sx={{ marginTop: 2, justifyContent: 'center', alignItems: 'center' }}>
+                    <Grid container spacing={6} sx={{ marginTop: 2, justifyContent: 'center', alignItems: 'center' }}>
                         <Grid item xs={12} md={6}>
                             <StyledTextField
                                 fullWidth
@@ -310,6 +317,10 @@ const Reservations = () => {
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
+                                inputProps={{
+                                    min: new Date().toISOString().split('T')[0]
+                                }}
+                                onFocus={(e) => e.target.showPicker()}
                             />
                         </Grid>
                         <Grid item xs={12} md={6}>
@@ -323,11 +334,20 @@ const Reservations = () => {
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
+                                inputProps={{
+                                    min: new Date().toISOString().split('T')[0]
+                                }}
                             />
                         </Grid>
                         <Grid item xs={12} md={6}>
                             <FormControl fullWidth>
-                                <InputLabel sx={{ fontFamily: '"Inter", sans-serif', color: '#2c2c2c' }}>
+                                <InputLabel
+                                    sx={{
+                                        fontFamily: '"Inter", sans-serif',
+                                        color: '#2c2c2c',
+                                        minWidth: '120px',
+                                    }}
+                                >
                                     Type de chambre
                                 </InputLabel>
                                 <StyledSelect

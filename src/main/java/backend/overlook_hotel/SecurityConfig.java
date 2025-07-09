@@ -16,7 +16,9 @@ public class SecurityConfig {
                 auth.requestMatchers("/api/auth/**").permitAll();
                 auth.requestMatchers("/api/profiles/**").permitAll();
                 auth.requestMatchers("/api/user-role/**").permitAll();
+                auth.requestMatchers("/overlook_hotel/api/rooms/**").permitAll();
                 auth.requestMatchers("/api/reservation/**").authenticated();
+                auth.anyRequest().permitAll(); 
             })
             .formLogin(Customizer.withDefaults());
         return http.build();
