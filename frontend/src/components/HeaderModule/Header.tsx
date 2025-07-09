@@ -23,7 +23,9 @@ const Header = () => {
                         <li><a href="/reservations">Booking</a></li>
                         <li><a href="/rooms">Rooms</a></li>
                         <li><a href="/guests">Guests</a></li>
-                        <li><a href="/login">Login</a></li>
+                        {!isAuthenticated && (
+                            <li><a href="/login">Login</a></li>
+                        )}
                     </ul>
                 </nav>
 
