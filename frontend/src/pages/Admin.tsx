@@ -24,6 +24,8 @@ interface Profile {
     lastName: string;
     email: string;
     role: string;
+    contract : string;
+    phone : string;
 }
 
 interface Client {
@@ -200,13 +202,14 @@ const Admin: React.FC = () => {
             </Box>
 
             <Box>
-                <TableContainer component={Paper} sx={{ boxShadow: 3, maxHeight : 400 }}>
+                <TableContainer component={Paper} sx={{ boxShadow: 3, maxHeight : 530 }}>
                     <Table>
                         <TableHead>
-                            <TableRow>
+                            <TableRow sx={{backgroundColor: "#9c9696"}}>
                                 <TableCell>Nom</TableCell>
                                 <TableCell>Email</TableCell>
-                                {tabIndex !== 2 && <TableCell>Rôle</TableCell>}
+                                <TableCell>Téléphone</TableCell>
+                                {tabIndex !== 2 && <TableCell>Contrat</TableCell>}
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -222,7 +225,8 @@ const Admin: React.FC = () => {
                                 >
                                     <TableCell>{item.firstName} {item.lastName}</TableCell>
                                     <TableCell>{item.email}</TableCell>
-                                    {tabIndex !== 2 && <TableCell>{(item as Profile).role}</TableCell>}
+                                    <TableCell>{(item as Profile).phone}</TableCell>
+                                    {tabIndex !== 2 && <TableCell>{(item as Profile).contract}</TableCell>}
                                 </TableRow>
                             ))}
                         </TableBody>
