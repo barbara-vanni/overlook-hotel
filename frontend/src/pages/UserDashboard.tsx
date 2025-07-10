@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Container, Typography, Button, Box } from "@mui/material";
+import {
+    Container,
+    Typography,
+    Button,
+    Box,
+    Tabs,
+    Tab
+} from "@mui/material";
 import axios from "axios";
+import UserProfileForm from "./UserProfileForm";
 
 interface UserData {
     firstName: string;
@@ -13,6 +21,7 @@ const UserDashboard: React.FC = () => {
     const { type, id } = useParams();
     const navigate = useNavigate();
     const [user, setUser] = useState<UserData | null>(null);
+    const [tabIndex, setTabIndex] = useState(0);
 
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
     const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -68,9 +77,12 @@ const UserDashboard: React.FC = () => {
         );
     }
 
+    // Détermination du type d'onglets selon le rôle
+    const isClient = user.role === "client";
+    const isProfile = user.role === "employee" || user.role === "admin";
+
     return (
         <Container sx={{ mt: 16, position: 'relative' }}>
-            {/* Bouton placé en haut à droite */}
             <Box sx={{ position: 'absolute', top: 16, right: 0 }}>
                 <Button onClick={handleBack} variant="contained" color="primary">
                     Retour
@@ -86,6 +98,33 @@ const UserDashboard: React.FC = () => {
             <Typography variant="subtitle1" color="text.secondary">
                 Rôle : {user.role}
             </Typography>
+
+            {/* Onglets pour tous */}
+            {(isClient || isProfile) && (
+                <>
+                    <Tabs
+                        value={tabIndex}
+                        onChange={(_, newValue) => setTabIndex(newValue)}
+                        sx={{ mt: 4, mb: 2 }}
+                    >
+                        <Tab label="Formulaires" />
+                        <Tab label={isClient ? "Mes réservations" : "Mes congés"} />
+                    </Tabs>
+
+                    {/* Formulaire universel */}
+                    {tabIndex === 0 && (
+                        <UserProfileForm userId={id!} type={type as "client" | "profile"} />
+                    )}
+
+                    {/* Réservations ou congés */}
+                    {tabIndex === 1 && isClient && (
+                        <Typography>Contenu des réservations (à définir)</Typography>
+                    )}
+                    {tabIndex === 1 && isProfile && (
+                        <Typography>Contenu des congés (à définir)</Typography>
+                    )}
+                </>
+            )}
         </Container>
     );
 };
