@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Grid, 
     Container, 
@@ -218,12 +218,9 @@ const FormDescription = styled(Typography)(({ theme }) => ({
 }));
 
 const Reservations = () => {
-    const roomTypes = [
-        'Chambres Classiques',
-        'Suites Garden View',
-        'Presidential Loft',
-        'Desert Pavilion'
-    ];
+    const [availableRooms, setAvailableRooms] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -232,10 +229,45 @@ const Reservations = () => {
         phone: '',
         checkIn: '',
         checkOut: '',
-        roomType: roomTypes[0], 
+        roomId: '', 
         guests: 1,
         specialRequests: ''
     });
+
+    // Fetch rooms based on guest count
+    useEffect(() => {
+        const fetchAvailableRooms = () => {
+            setLoading(true);
+            setError(null);
+            
+            const url = formData.guests > 1 
+                ? `http://localhost:8080/overlook_hotel/api/rooms/available?minCapacity=${formData.guests}`
+                : 'http://localhost:8080/overlook_hotel/api/rooms';
+                
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Erreur du serveur: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    setAvailableRooms(data.filter((room: any) => room.status !== 'reserve'));
+                    setLoading(false);
+                    // Reset room selection if current selection is no longer available
+                    if (formData.roomId && !data.find((room: any) => room.id === formData.roomId)) {
+                        setFormData(prev => ({ ...prev, roomId: '' }));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching rooms:', error);
+                    setError('Impossible de charger les chambres disponibles');
+                    setLoading(false);
+                });
+        };
+
+        fetchAvailableRooms();
+    }, [formData.guests]);
 
     const handleInputChange = (field: string) => (event: any) => {
         setFormData({
@@ -265,6 +297,7 @@ const Reservations = () => {
                     </SectionTitle>
                     <FormDescription>
                         Complétez ce formulaire pour réserver votre séjour au Aladdin's Hotel. 
+                        Sélectionnez d'abord le nombre d'invités pour voir les chambres disponibles qui peuvent vous accueillir.
                         Notre équipe vous contactera dans les plus brefs délais pour confirmer votre réservation.
                     </FormDescription>
                     
@@ -348,19 +381,39 @@ const Reservations = () => {
                                         minWidth: '120px',
                                     }}
                                 >
-                                    Type de chambre
+                                    Chambre disponible
                                 </InputLabel>
                                 <StyledSelect
-                                    value={formData.roomType}
-                                    onChange={handleInputChange('roomType')}
-                                    label="Type de chambre"
+                                    value={formData.roomId}
+                                    onChange={handleInputChange('roomId')}
+                                    label="Chambre disponible"
+                                    disabled={loading || availableRooms.length === 0}
                                 >
-                                    {roomTypes.map((room) => (
-                                        <MenuItem key={room} value={room} sx={{ fontFamily: '"Inter", sans-serif' }}>
-                                            {room}
+                                    {loading ? (
+                                        <MenuItem value="" sx={{ fontFamily: '"Inter", sans-serif' }}>
+                                            Chargement...
                                         </MenuItem>
-                                    ))}
+                                    ) : availableRooms.length === 0 ? (
+                                        <MenuItem value="" sx={{ fontFamily: '"Inter", sans-serif' }}>
+                                            Aucune chambre disponible pour {formData.guests} invité{formData.guests > 1 ? 's' : ''}
+                                        </MenuItem>
+                                    ) : (
+                                        availableRooms.map((room) => (
+                                            <MenuItem key={room.id} value={room.id} sx={{ fontFamily: '"Inter", sans-serif' }}>
+                                                {room.type} - Capacité: {room.capacity} personne{room.capacity > 1 ? 's' : ''}
+                                            </MenuItem>
+                                        ))
+                                    )}
                                 </StyledSelect>
+                                {error && (
+                                    <Typography 
+                                        variant="caption" 
+                                        color="error" 
+                                        sx={{ mt: 1, fontFamily: '"Inter", sans-serif' }}
+                                    >
+                                        {error}
+                                    </Typography>
+                                )}
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} md={6}>
@@ -395,17 +448,21 @@ const Reservations = () => {
                         </Grid>
                     </Grid>
 
-                    {formData.roomType && formData.checkIn && formData.checkOut && (
-                        <ReservationSummary>
-                            <SummaryTitle>Résumé de votre réservation</SummaryTitle>
-                            <SummaryText><strong>Chambre:</strong> {formData.roomType}</SummaryText>
-                            <SummaryText><strong>Dates:</strong> {formData.checkIn} - {formData.checkOut}</SummaryText>
-                            <SummaryText><strong>Invités:</strong> {formData.guests} {formData.guests === 1 ? 'personne' : 'personnes'}</SummaryText>
-                            {formData.specialRequests && (
-                                <SummaryText><strong>Demandes spéciales:</strong> {formData.specialRequests}</SummaryText>
-                            )}
-                        </ReservationSummary>
-                    )}
+                    {formData.roomId && formData.checkIn && formData.checkOut && (() => {
+                        const selectedRoom = availableRooms.find(room => room.id === formData.roomId);
+                        return selectedRoom ? (
+                            <ReservationSummary>
+                                <SummaryTitle>Résumé de votre réservation</SummaryTitle>
+                                <SummaryText><strong>Chambre:</strong> {selectedRoom.type}</SummaryText>
+                                <SummaryText><strong>Capacité:</strong> {selectedRoom.capacity} personne{selectedRoom.capacity > 1 ? 's' : ''}</SummaryText>
+                                <SummaryText><strong>Dates:</strong> {formData.checkIn} - {formData.checkOut}</SummaryText>
+                                <SummaryText><strong>Invités:</strong> {formData.guests} {formData.guests === 1 ? 'personne' : 'personnes'}</SummaryText>
+                                {formData.specialRequests && (
+                                    <SummaryText><strong>Demandes spéciales:</strong> {formData.specialRequests}</SummaryText>
+                                )}
+                            </ReservationSummary>
+                        ) : null;
+                    })()}
 
                     <Box sx={{ textAlign: 'center' }}>
                         <ReserveButton>
