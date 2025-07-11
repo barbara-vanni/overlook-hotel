@@ -310,7 +310,11 @@ const Home = () => {
                             Date d'arrivée
                         </FieldLabel>
                         <FieldValue>
-                            13 Juin 2025
+                            {new Date().toLocaleDateString('fr-FR', { 
+                                day: 'numeric', 
+                                month: 'long', 
+                                year: 'numeric' 
+                            })}
                         </FieldValue>
                     </ReservationField>
                     
@@ -319,7 +323,15 @@ const Home = () => {
                             Date de départ
                         </FieldLabel>
                         <FieldValue>
-                            14 Juin 2025
+                            {(() => {
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                return tomorrow.toLocaleDateString('fr-FR', { 
+                                    day: 'numeric', 
+                                    month: 'long', 
+                                    year: 'numeric' 
+                                });
+                            })()}
                         </FieldValue>
                     </ReservationField>
                     
