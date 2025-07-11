@@ -4,7 +4,23 @@ import AvisModal from "../components/Review/ReviewModal";
 import axios from "axios";
 
 const Avis = () => {
-    const [avis, setAvis] = useState<{ id: string, note: number, commentaire: string }[]>([]);
+    type AvisType = {
+        id: string;
+        client: {
+            firstName: string;
+            lastName: string;
+        };
+        profile: {
+            firstName: string;
+            lastName: string;
+        };
+        evaluation: number;
+        message: string;
+        answer: string | null;
+    };
+
+    const [avis, setAvis] = useState<AvisType[]>([]);
+
     const [open, setOpen] = useState(false);
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
     const accessToken = localStorage.getItem("accessToken");
@@ -48,7 +64,6 @@ const Avis = () => {
     };
 
 
-
     return (
         <Box sx={{ maxWidth: 600, mx: "auto", mt: 40 }}>
             <Button variant="contained" onClick={() => setOpen(true)}>
@@ -57,10 +72,25 @@ const Avis = () => {
             <AvisModal open={open} onClose={() => setOpen(false)} onSubmit={handleAddAvis} />
             <Typography variant="h4" sx={{ my: 2 }}>Avis des clients</Typography>
             {avis.length === 0 && <Typography>Aucun avis pour le moment.</Typography>}
-            {avis.map((a) => (
-                <Paper key={a.id} sx={{ p: 2, my: 1 }}>
-                    <Rating value={a.note} readOnly />
-                    <Typography>{a.commentaire}</Typography>
+            {avis.map((msg) => (
+                <Paper key={msg.id} elevation={3} sx={{ p: 2, mb: 2 }}>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                        {msg.client.firstName} {msg.client.lastName}
+                    </Typography>
+
+                    <Rating value={msg.evaluation} readOnly size="small" sx={{ mt: 1 }} />
+
+                    <Typography variant="body1" sx={{ mt: 1 }}>
+                        {msg.message}
+                    </Typography>
+
+                    {msg.answer && (
+                        <Box sx={{ mt: 2, p: 1.5, bgcolor: "#f1f1f1", borderLeft: "4px solid #1976d2" }}>
+                            <Typography variant="body2" color="textSecondary">
+                                Réponse : {msg.answer}
+                            </Typography>
+                        </Box>
+                    )}
                 </Paper>
             ))}
         </Box>
