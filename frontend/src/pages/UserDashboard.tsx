@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import UserProfileForm from "./UserProfileForm";
+import AbsenceList from "./AbsenceList.tsx";
 
 interface UserData {
     firstName: string;
@@ -121,7 +122,7 @@ const UserDashboard: React.FC = () => {
                         <Typography>Contenu des réservations (à définir)</Typography>
                     )}
                     {tabIndex === 1 && isProfile && (
-                        <Typography>Contenu des congés (à définir)</Typography>
+                        <AbsenceList profileId={id!} />
                     )}
                 </>
             )}
