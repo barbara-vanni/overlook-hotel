@@ -32,6 +32,8 @@ const Header = () => {
         navigate("/cart");
     };
 
+    const userId = localStorage.getItem("userId");
+
     return (
         <header className="header">
             <AppBar sx={{ flexDirection: "row", padding: "0 50px", alignItems: "center", gap: 4 }} className="app-bar">
@@ -41,8 +43,15 @@ const Header = () => {
                         <li><a href="/">Home</a></li>
                         <li><a href="/reservations">Booking</a></li>
                         <li><a href="/rooms">Rooms</a></li>
-                        <li><a href="/guests">Guests</a></li>
-                        <li><a href="/login">Login</a></li>
+                        <li><a href="/avis">Avis</a></li>
+                        {!isAuthenticated && (
+                            <li><a href="/login">Login</a></li>
+                        )}
+                        {isAuthenticated && (
+                            <li>
+                                <a href={`/profile/${userId}`}>Profil</a>
+                            </li>
+                        )}
                     </ul>
                 </nav>
 
