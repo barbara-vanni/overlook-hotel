@@ -44,4 +44,10 @@ public class AbsenceController {
         absenceService.deleteAbsence(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/by-profile/{idProfil}")
+    public ResponseEntity<List<Absence>> getAbsencesByIdProfil(@PathVariable UUID idProfil) {
+        List<Absence> absences = absenceService.getAbsencesByIdProfil(idProfil);
+        return ResponseEntity.ok(absences);
+    }
 }

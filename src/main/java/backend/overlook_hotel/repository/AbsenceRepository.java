@@ -10,6 +10,7 @@ import java.util.UUID;
 @Repository
 public interface AbsenceRepository extends JpaRepository<Absence, UUID> {
 //    List<Absence> findByProfileId(UUID profileId);
+    List<Absence> findByIdProfil(UUID idProfil);
 //    List<Absence> findByCancel(boolean cancel);
 //    List<Absence> findByType(String type);
 }

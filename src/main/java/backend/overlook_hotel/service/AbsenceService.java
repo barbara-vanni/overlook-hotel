@@ -23,6 +23,10 @@ public class AbsenceService {
         return absenceRepository.findById(id);
     }
 
+    public List<Absence> getAbsencesByIdProfil(UUID idProfil) {
+        return absenceRepository.findByIdProfil(idProfil);
+    }
+
     public Absence createAbsence(Absence absence) {
         return absenceRepository.save(absence);
     }
@@ -33,7 +37,7 @@ public class AbsenceService {
             absence.setStartDate(updatedAbsence.getStartDate());
             absence.setEndDate(updatedAbsence.getEndDate());
             absence.setCancel(updatedAbsence.isCancel());
-            absence.setProfile(updatedAbsence.getProfile());
+            absence.setIdProfil(updatedAbsence.getIdProfil());
             return absenceRepository.save(absence);
         }).orElse(null);
     }
