@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, Rating, Button, Paper } from "@mui/material";
+import {Box, Typography, Rating, Button, Paper, Grid, Divider} from "@mui/material";
 import AvisModal from "../components/Review/ReviewModal";
 import axios from "axios";
 
@@ -64,35 +64,53 @@ const Avis = () => {
     };
 
 
-    return (
-        <Box sx={{ maxWidth: 600, mx: "auto", mt: 40 }}>
-            <Button variant="contained" onClick={() => setOpen(true)}>
-                Laisser un avis
-            </Button>
+   return (
+        <Box sx={{ width: "100%", maxWidth:1500 , mx: "auto", mt: 20 }}>
             <AvisModal open={open} onClose={() => setOpen(false)} onSubmit={handleAddAvis} />
-            <Typography variant="h4" sx={{ my: 2 }}>Avis des clients</Typography>
+
+           <Box sx={{ display: "flex", justifyContent: "space-between",alignItems: "center", gap: 2, mb: 2 }}>
+               <Typography variant="h4" sx={{ my: 2 }}>Avis des clients</Typography>
+
+                <Button variant="outlined" onClick={() => setOpen(true)}>
+                    Laisser un avis
+                </Button>
+
+            </Box>
+            <Divider sx={{mb:4}}/>
+
             {avis.length === 0 && <Typography>Aucun avis pour le moment.</Typography>}
-            {avis.map((msg) => (
-                <Paper key={msg.id} elevation={3} sx={{ p: 2, mb: 2 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                        {msg.client.firstName} {msg.client.lastName}
-                    </Typography>
-
-                    <Rating value={msg.evaluation} readOnly size="small" sx={{ mt: 1 }} />
-
-                    <Typography variant="body1" sx={{ mt: 1 }}>
-                        {msg.message}
-                    </Typography>
-
-                    {msg.answer && (
-                        <Box sx={{ mt: 2, p: 1.5, bgcolor: "#f1f1f1", borderLeft: "4px solid #1976d2" }}>
-                            <Typography variant="body2" color="textSecondary">
-                                Réponse : {msg.answer}
+            <Grid container spacing={7}>
+                {avis.map((msg) => (
+                    <Grid item xs={12} sm={6} md={4} key={msg.id}>
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 2,
+                                mb: 2,
+                                width: "100%",
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "space-between"
+                            }}
+                        >
+                            <Typography variant="subtitle1" fontWeight="bold">
+                                {msg.client.firstName} {msg.client.lastName}
                             </Typography>
-                        </Box>
-                    )}
-                </Paper>
-            ))}
+                            <Rating value={msg.evaluation} readOnly size="small" sx={{ mt: 1 }} />
+                            <Typography variant="body1" sx={{ mt: 1 }}>
+                                {msg.message}
+                            </Typography>
+                            {msg.answer && (
+                                <Box sx={{ mt: 2, p: 1.5, bgcolor: "#f1f1f1", borderLeft: "4px solid #1976d2" }}>
+                                    <Typography variant="body2" color="textSecondary">
+                                        Réponse : {msg.answer}
+                                    </Typography>
+                                </Box>
+                            )}
+                        </Paper>
+                    </Grid>
+                ))}
+            </Grid>
         </Box>
     );
 };
