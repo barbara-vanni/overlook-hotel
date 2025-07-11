@@ -5,11 +5,10 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "absence")
 public class Absence {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @Column(nullable = false)
@@ -24,23 +23,11 @@ public class Absence {
     @Column(nullable = false)
     private boolean cancel = false;
 
-    @ManyToOne
-    @JoinColumn(name = "id_profil", nullable = false)
-    private Profile profile;
+    @Column(name = "id_profil", nullable = false)
+    private UUID idProfil;
 
-    // Constructeurs
-    public Absence() {}
+    // --- Getters & Setters ---
 
-    public Absence(UUID id, String type, LocalDate startDate, LocalDate endDate, boolean cancel, Profile profile) {
-        this.id = id;
-        this.type = type;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.cancel = cancel;
-        this.profile = profile;
-    }
-
-    // Getters et Setters
     public UUID getId() {
         return id;
     }
@@ -81,11 +68,11 @@ public class Absence {
         this.cancel = cancel;
     }
 
-    public Profile getProfile() {
-        return profile;
+    public UUID getIdProfil() {
+        return idProfil;
     }
 
-    public void setProfile(Profile profile) {
-        this.profile = profile;
+    public void setIdProfil(UUID idProfil) {
+        this.idProfil = idProfil;
     }
 }
