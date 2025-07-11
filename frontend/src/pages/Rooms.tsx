@@ -328,16 +328,24 @@ const Rooms = () => {
     const [roomToReserve, setRoomToReserve] = useState<any>(null);
     const [rooms, setRooms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetch('http://localhost:8080/overlook_hotel/api/rooms')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erreur du serveur: ${response.status} - ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 setRooms(data);
                 setLoading(false);
+                setError(null);
             })
             .catch(error => {
                 console.error('Error fetching rooms:', error);
+                setError(error.message || 'Impossible de charger les chambres');
                 setLoading(false);
             });
     }, []);
@@ -383,6 +391,33 @@ const Rooms = () => {
         );
     }
 
+    if (error) {
+        return (
+            <StyledContainer>
+                <Container maxWidth="lg">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', gap: 2 }}>
+                        <Typography variant="h5" color="error" textAlign="center">
+                            Erreur de chargement des chambres
+                        </Typography>
+                        <Typography variant="body1" textAlign="center" color="text.secondary">
+                            {error}
+                        </Typography>
+                        <Typography variant="body2" textAlign="center" color="text.secondary">
+                            Veuillez vérifier que le serveur backend est démarré et que la base de données est accessible.
+                        </Typography>
+                        <Button 
+                            variant="contained" 
+                            onClick={() => window.location.reload()}
+                            sx={{ mt: 2, backgroundColor: '#a67c52', '&:hover': { backgroundColor: '#8b6342' } }}
+                        >
+                            Réessayer
+                        </Button>
+                    </Box>
+                </Container>
+            </StyledContainer>
+        );
+    }
+
     return (
         <StyledContainer>
             <Container maxWidth="lg">
@@ -404,7 +439,7 @@ const Rooms = () => {
                             <Grid container spacing={0} sx={{ width: '100%', margin: 0, justifyContent: 'center' }}>
                                 {index % 2 === 0 ? (
                                     <>
-                                        <Grid item xs={12} md={5}>
+                                        <Grid size={{ xs: 12, md: 5 }}>
                                             <RoomContent>
                                                 <RoomTitle>
                                                     {room.type || room.title}
@@ -421,7 +456,7 @@ const Rooms = () => {
                                                 </ReserveButton>
                                             </RoomContent>
                                         </Grid>
-                                        <Grid item xs={12} md={7}>
+                                        <Grid size={{ xs: 12, md: 7 }}>
                                             <RoomImageContainer>
                                                 <NavigationArrow className="left">
                                                     ‹
@@ -438,7 +473,7 @@ const Rooms = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <Grid item xs={12} md={7}>
+                                        <Grid size={{ xs: 12, md: 7 }}>
                                             <RoomImageContainer>
                                                 <NavigationArrow className="left">
                                                     ‹
@@ -452,7 +487,7 @@ const Rooms = () => {
                                                 </NavigationArrow>
                                             </RoomImageContainer>
                                         </Grid>
-                                        <Grid item xs={12} md={5}>
+                                        <Grid size={{ xs: 12, md: 5 }}>
                                             <RoomContent>
                                                 <RoomTitle>
                                                     {room.type || room.title}

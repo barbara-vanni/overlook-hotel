@@ -40,9 +40,9 @@ const Header = () => {
                 <h1>Overlook Hotel</h1>
                 <nav className="nav">
                     <ul>
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/reservations">Booking</a></li>
-                        <li><a href="/rooms">Rooms</a></li>
+                        <li><a href="/">Acceuil</a></li>
+                        <li><a href="/reservations">Réservations</a></li>
+                        <li><a href="/rooms">Chambres</a></li>
                         <li><a href="/avis">Avis</a></li>
                         {!isAuthenticated && (
                             <li><a href="/login">Login</a></li>
