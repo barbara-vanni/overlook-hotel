@@ -36,3 +36,24 @@
     text-decoration: none;
     color: inherit;
 }
+
+/* Luxury cart icon styling */
+.MuiIconButton-root {
+    transition: all 0.3s ease !important;
+}
+
+.MuiIconButton-root:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3) !important;
+}
+
+/* Add subtle animation to the key icon */
+@keyframes luxuryGlow {
+    0% { filter: drop-shadow(0 0 2px rgba(212, 175, 55, 0.3)); }
+    50% { filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6)); }
+    100% { filter: drop-shadow(0 0 2px rgba(212, 175, 55, 0.3)); }
+}
+
+.MuiIconButton-root svg {
+    animation: luxuryGlow 3s ease-in-out infinite;
+}

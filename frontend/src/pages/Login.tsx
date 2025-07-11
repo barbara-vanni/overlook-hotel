@@ -30,7 +30,19 @@ import React, { useState } from "react";
         const [password, setPassword] = useState("");
         const navigate = useNavigate();
 
-        const handleOpen = () => setOpen(true);
+        const checkIfAlreadyConnected = () => {
+            const accessToken = localStorage.getItem("accessToken");
+            return accessToken !== null;
+        };
+
+        const handleOpen = () => {
+            if (checkIfAlreadyConnected()) {
+                alert("Vous êtes déjà connecté");
+                return;
+            }
+            setOpen(true);
+        };
+        
         const handleClose = () => setOpen(false);
 
           const handleLogin = async () => {

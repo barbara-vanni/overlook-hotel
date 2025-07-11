@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import JasminSuitePicture from "../assets/image/JasminSuitePicture.jpg";
 import { Grid, Container, Typography, Box, Button, Modal, Fade, Backdrop } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
+import ReservationModal from "../components/ReservationModal/ReservationModal";
 
 const StyledContainer = styled(Box)(({ theme }) => ({
     paddingTop: theme.spacing(8),
@@ -319,9 +321,12 @@ const ModalOrnament = styled(Box)(({ theme }) => ({
 }));
 
 const Rooms = () => {
+    const navigate = useNavigate();
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedRoom, setSelectedRoom] = useState(null);
-    const [rooms, setRooms] = useState([]);
+    const [selectedRoom, setSelectedRoom] = useState<any>(null);
+    const [reservationModalOpen, setReservationModalOpen] = useState(false);
+    const [roomToReserve, setRoomToReserve] = useState<any>(null);
+    const [rooms, setRooms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -337,7 +342,7 @@ const Rooms = () => {
             });
     }, []);
 
-    const handleOpenModal = (room) => {
+    const handleOpenModal = (room: any) => {
         setSelectedRoom(room);
         setModalOpen(true);
     };
@@ -345,6 +350,25 @@ const Rooms = () => {
     const handleCloseModal = () => {
         setModalOpen(false);
         setSelectedRoom(null);
+    };
+
+    const handleOpenReservationModal = (room: any) => {
+        // Check if user is authenticated before opening reservation modal
+        const isAuthenticated = localStorage.getItem("accessToken");
+        if (!isAuthenticated) {
+            if (confirm("Vous devez être connecté pour réserver une chambre. Voulez-vous aller à la page de connexion maintenant ?")) {
+                navigate("/login");
+            }
+            return;
+        }
+        
+        setRoomToReserve(room);
+        setReservationModalOpen(true);
+    };
+
+    const handleCloseReservationModal = () => {
+        setReservationModalOpen(false);
+        setRoomToReserve(null);
     };
 
     if (loading) {
@@ -392,7 +416,7 @@ const Rooms = () => {
                                                 <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
                                                 </DiscoverButton>
-                                                <ReserveButton>
+                                                <ReserveButton onClick={() => handleOpenReservationModal(room)}>
                                                     Réservez Maintenant
                                                 </ReserveButton>
                                             </RoomContent>
@@ -440,7 +464,7 @@ const Rooms = () => {
                                                 <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
                                                 </DiscoverButton>
-                                                <ReserveButton>
+                                                <ReserveButton onClick={() => handleOpenReservationModal(room)}>
                                                     Réservez Maintenant
                                                 </ReserveButton>
                                             </RoomContent>
@@ -495,6 +519,13 @@ const Rooms = () => {
                     </ModalContent>
                 </Fade>
             </StyledModal>
+
+            {/* Reservation Modal */}
+            <ReservationModal
+                open={reservationModalOpen}
+                onClose={handleCloseReservationModal}
+                room={roomToReserve}
+            />
         </StyledContainer>
     );
 }
