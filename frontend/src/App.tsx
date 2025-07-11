@@ -11,6 +11,7 @@ import Employee from "./pages/Employee.tsx";
 import Footer from "./components/FooterModule/Footer.tsx";
 import UserDashboard from "./pages/UserDashboard.tsx";
 import FormulaireCreation from "./pages/CreateForm.tsx";
+import Avis from "./pages/Avis.tsx";
 
 function App() {
     return (
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/:type/:id" element={<UserDashboard />} />
                 <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
                 <Route path="/employee" element={<PrivateRoute><Employee /></PrivateRoute>} />
+                <Route path="/avis" element={<Avis />} />
             </Routes>
             </main>
             <Footer />
