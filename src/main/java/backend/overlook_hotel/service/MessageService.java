@@ -1,7 +1,11 @@
 package backend.overlook_hotel.service;
 
+import backend.overlook_hotel.model.Client;
 import backend.overlook_hotel.model.Message;
+import backend.overlook_hotel.model.Profile;
+import backend.overlook_hotel.repository.ClientRepository;
 import backend.overlook_hotel.repository.MessageRepository;
+import backend.overlook_hotel.repository.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +19,12 @@ public class MessageService {
     @Autowired
     private MessageRepository messageRepository;
 
+    @Autowired
+    private ClientRepository clientRepo;
+
+    @Autowired
+    private ProfileRepository profileRepo;
+
     public List<Message> getAllMessages() {
         return messageRepository.findAll();
     }
@@ -24,6 +34,21 @@ public class MessageService {
     }
 
     public Message createMessage(Message message) {
+        UUID clientId = message.getClient().getId();
+        UUID profileId = message.getProfile() != null ? message.getProfile().getId() : null;
+
+        Client client = clientRepo.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found"));
+
+        Profile profile = null;
+        if (profileId != null) {
+            profile = profileRepo.findById(profileId)
+                    .orElseThrow(() -> new RuntimeException("Profile not found"));
+        }
+
+        message.setClient(client);
+        message.setProfile(profile);
+
         return messageRepository.save(message);
     }
 
