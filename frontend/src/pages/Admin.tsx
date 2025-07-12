@@ -216,9 +216,13 @@ const Admin: React.FC = () => {
                                     hover
                                     sx={{
                                         backgroundColor: idx % 2 === 0 ? "#fff" : "#f0ede8",
-                                        cursor: "pointer"
+                                        cursor: tabIndex === 0 && userRole === "admin" && item.id !== userId ? "not-allowed" : "pointer"
                                     }}
-                                    onClick={() => handleClickUser(item.id, tabIndex === 2 ? "client" : "profile")}
+                                    onClick={() => {
+                                        if (tabIndex === 0 && userRole === "admin" && item.id !== userId) return;
+                                        handleClickUser(item.id, tabIndex === 2 ? "client" : "profile");
+                                    }}
+
                                 >
                                     <TableCell>{item.firstName} {item.lastName}</TableCell>
                                     <TableCell>{item.email}</TableCell>
