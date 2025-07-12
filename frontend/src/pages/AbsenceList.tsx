@@ -19,9 +19,12 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper
+    Paper,
+    IconButton
 } from "@mui/material";
 import axios from "axios";
+// @ts-ignore
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface Absence {
     id: string;
@@ -47,18 +50,20 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
     const [creationError, setCreationError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-    useEffect(() => {
-        const fetchAbsences = async () => {
-            try {
-                const res = await axios.get(`${API_BASE}/api/absences/by-profile/${profileId}`);
-                setAbsences(res.data); // ← on affiche tout
-            } catch (err) {
-                console.error("Erreur lors du chargement des absences :", err);
-            }
-        };
+    const fetchAbsences = async () => {
+        try {
+            const res = await axios.get(`${API_BASE}/api/absences/by-profile/${profileId}`);
+            setAbsences(res.data);
+        } catch (err) {
+            console.error("Erreur lors du chargement des absences :", err);
+        }
+    };
 
+    useEffect(() => {
         fetchAbsences();
     }, [profileId, success]);
 
@@ -116,6 +121,18 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
         }
     };
 
+    const handleDelete = async () => {
+        if (!confirmDeleteId) return;
+
+        try {
+            await axios.delete(`${API_BASE}/api/absences/${confirmDeleteId}`);
+            setConfirmDeleteId(null);
+            fetchAbsences();
+        } catch (err) {
+            console.error("Erreur lors de la suppression :", err);
+        }
+    };
+
     const lastFiveAbsences = [...absences]
         .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
         .slice(0, 5);
@@ -146,6 +163,7 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                             <TableCell>Date de début</TableCell>
                             <TableCell>Date de fin</TableCell>
                             <TableCell>Type</TableCell>
+                            <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -154,6 +172,14 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                                 <TableCell>{a.startDate}</TableCell>
                                 <TableCell>{a.endDate}</TableCell>
                                 <TableCell>{a.type}</TableCell>
+                                <TableCell align="center">
+                                    <IconButton
+                                        color="error"
+                                        onClick={() => setConfirmDeleteId(a.id)}
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -225,6 +251,20 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                     {creationError}
                 </Alert>
             )}
+
+            {/* ✅ Fenêtre de confirmation suppression */}
+            <Dialog open={!!confirmDeleteId} onClose={() => setConfirmDeleteId(null)}>
+                <DialogTitle>Confirmer la suppression</DialogTitle>
+                <DialogContent>
+                    <Typography>Voulez-vous vraiment supprimer cette absence ?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmDeleteId(null)}>Annuler</Button>
+                    <Button color="error" variant="contained" onClick={handleDelete}>
+                        Supprimer
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
