@@ -70,24 +70,27 @@ const UserDashboard: React.FC = () => {
             <Container sx={{ mt: 16, position: 'relative' }}>
                 <Typography variant="h6">Utilisateur introuvable.</Typography>
                 <Box sx={{ position: 'absolute', top: 16, right: 0 }}>
-                    <Button onClick={handleBack} variant="outlined">
-                        Retour
-                    </Button>
+                    {localStorage.getItem("userRole") !== "client" && (
+                        <Button onClick={handleBack} variant="outlined">
+                            Retour
+                        </Button>
+                    )}
                 </Box>
             </Container>
         );
     }
 
-    // Détermination du type d'onglets selon le rôle
     const isClient = user.role === "client";
     const isProfile = user.role === "employee" || user.role === "admin";
 
     return (
         <Container sx={{ mt: 16, position: 'relative' }}>
             <Box sx={{ position: 'absolute', top: 16, right: 0 }}>
-                <Button onClick={handleBack} variant="contained" color="primary">
-                    Retour
-                </Button>
+                {localStorage.getItem("userRole") !== "client" && (
+                    <Button onClick={handleBack} variant="outlined" sx={{ mb: 2 }}>
+                        Retour
+                    </Button>
+                )}
             </Box>
 
             <Typography variant="h4" gutterBottom>
@@ -100,7 +103,6 @@ const UserDashboard: React.FC = () => {
                 Rôle : {user.role}
             </Typography>
 
-            {/* Onglets pour tous */}
             {(isClient || isProfile) && (
                 <>
                     <Tabs
@@ -112,12 +114,10 @@ const UserDashboard: React.FC = () => {
                         <Tab label={isClient ? "Mes réservations" : "Mes congés"} />
                     </Tabs>
 
-                    {/* Formulaire universel */}
                     {tabIndex === 0 && (
                         <UserProfileForm userId={id!} type={type as "client" | "profile"} />
                     )}
 
-                    {/* Réservations ou congés */}
                     {tabIndex === 1 && isClient && (
                         <Typography>Contenu des réservations (à définir)</Typography>
                     )}
