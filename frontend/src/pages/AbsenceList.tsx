@@ -53,10 +53,9 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
         const fetchAbsences = async () => {
             try {
                 const res = await axios.get(`${API_BASE}/api/absences/by-profile/${profileId}`);
-                const conges = res.data.filter((a: Absence) => a.type === "conge");
-                setAbsences(conges);
+                setAbsences(res.data); // ← on affiche tout
             } catch (err) {
-                console.error("Erreur lors du chargement des congés :", err);
+                console.error("Erreur lors du chargement des absences :", err);
             }
         };
 
@@ -105,7 +104,7 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                 type,
                 startDate,
                 endDate,
-                cancel: "false",
+                cancel: false,
                 idProfil: profileId,
             });
 
@@ -117,28 +116,28 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
         }
     };
 
-    const lastFiveConges = [...absences]
+    const lastFiveAbsences = [...absences]
         .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
         .slice(0, 5);
 
     return (
         <Box sx={{ mt: 4 }}>
             <Typography variant="h6" gutterBottom>
-                Mes congés
+                Mes absences
             </Typography>
 
             <Button variant="contained" onClick={handleOpen}>
-                Demander un congé
+                Demander une absence
             </Button>
 
             {success && (
                 <Alert severity="success" sx={{ mt: 2 }}>
-                    Congé demandé avec succès.
+                    Absence enregistrée avec succès.
                 </Alert>
             )}
 
             <Typography variant="subtitle1" sx={{ mt: 4, mb: 1 }}>
-                5 derniers congés
+                5 dernières absences
             </Typography>
             <TableContainer component={Paper} sx={{ mb: 2 }}>
                 <Table size="small">
@@ -146,19 +145,15 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                         <TableRow>
                             <TableCell>Date de début</TableCell>
                             <TableCell>Date de fin</TableCell>
-                            <TableCell>Statut</TableCell>
+                            <TableCell>Type</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {lastFiveConges.map((a) => (
+                        {lastFiveAbsences.map((a) => (
                             <TableRow key={a.id}>
                                 <TableCell>{a.startDate}</TableCell>
                                 <TableCell>{a.endDate}</TableCell>
-                                <TableCell>
-                                    <span style={{ color: a.cancel ? "red" : "green" }}>
-                                        {a.cancel ? "Annulé" : "Confirmé"}
-                                    </span>
-                                </TableCell>
+                                <TableCell>{a.type}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -170,7 +165,7 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                     <ListItem key={absence.id}>
                         <ListItemText
                             primary={`${absence.startDate} → ${absence.endDate}`}
-                            secondary={absence.cancel ? "Annulé" : "Confirmé"}
+                            secondary={absence.type}
                         />
                     </ListItem>
                 ))}
