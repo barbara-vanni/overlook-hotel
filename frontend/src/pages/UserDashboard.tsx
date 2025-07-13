@@ -30,6 +30,34 @@ const UserDashboard: React.FC = () => {
     const accessToken = localStorage.getItem("accessToken");
 
     useEffect(() => {
+        const loggedInRole = localStorage.getItem("userRole");
+        const loggedInId = localStorage.getItem("userId");
+
+        // 👉 cas particulier : client connecté accède à son propre profil
+        if (type === "profile" && loggedInRole === "client" && id === loggedInId) {
+            axios.get(`${SUPABASE_URL}/rest/v1/client?id=eq.${id}`, {
+                headers: {
+                    apikey: SUPABASE_KEY,
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            })
+                .then((res) => {
+                    const client = res.data[0];
+                    if (client) {
+                        setUser({
+                            firstName: client.first_name,
+                            lastName: client.last_name,
+                            role: "client",
+                        });
+                    } else {
+                        setUser(null);
+                    }
+                })
+                .catch(() => setUser(null));
+            return;
+        }
+
+        // sinon cas normal
         if (type === "profile") {
             axios.get(`${API_BASE}/api/profiles/${id}`)
                 .then((res) => {
@@ -82,6 +110,10 @@ const UserDashboard: React.FC = () => {
 
     const isClient = user.role === "client";
     const isProfile = user.role === "employee" || user.role === "admin";
+    const effectiveType = (localStorage.getItem("userRole") === "client" && id === localStorage.getItem("userId"))
+        ? "client"
+        : type;
+
 
     return (
         <Container sx={{ mt: 16, position: 'relative' }}>
@@ -115,7 +147,7 @@ const UserDashboard: React.FC = () => {
                     </Tabs>
 
                     {tabIndex === 0 && (
-                        <UserProfileForm userId={id!} type={type as "client" | "profile"} />
+                        <UserProfileForm userId={id!} type={effectiveType as "client" | "profile"} />
                     )}
 
                     {tabIndex === 1 && isClient && (
