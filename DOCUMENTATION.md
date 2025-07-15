@@ -199,16 +199,76 @@ Quand un admin réserve pour un client, l'interface affiche :
 2. Configurer `.env` avec les URLs Supabase et backend
 3. Démarrer avec `npm run dev`
 
+### Variables d'environnement (.env)
+```properties
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_API_BASE_URL=http://localhost:8080/overlook_hotel
+```
 
+## 🖼️ Système d'images dynamiques
+
+### Association type de chambre → image
+Le système associe automatiquement les images aux chambres selon leur type :
+
+| Type de chambre | Image utilisée | Fichier | Priorité |
+|-----------------|----------------|---------|----------|
+| **Royal Suite**, Suite Royale | Chambre5 | `Chambre5.webp` | 🔥 Très haute |
+| **Jasmin Suite** | JasminSuitePicture | `JasminSuitePicture.jpg` | 🔥 Très haute |
+| **Deluxe Suite**, Suite Deluxe | Chambre2 | `Chambre2.webp` | 🔥 Très haute |
+| **Premium Suite**, Suite Premium | Chambre4 | `Chambre4.webp` | 🔥 Très haute |
+| **Royal**, Royale | Chambre5 | `Chambre5.webp` | ⭐ Haute |
+| **Jasmin** | JasminSuitePicture | `JasminSuitePicture.jpg` | ⭐ Haute |
+| **Deluxe**, Luxury | Chambre2 | `Chambre2.webp` | ⭐ Haute |
+| **Standard**, Classique | Chambre3 | `Chambre3.jpg` | ⭐ Haute |
+| **Premium**, Supérieur | Chambre4 | `Chambre4.webp` | ⭐ Haute |
+| **Familial**, Family | Chambre6 | `Chambre6.jpg` | ⭐ Haute |
+| **Sahara**, Désert | Sahara | `sahara.jpg` | ⭐ Haute |
+| **Oasis** | SaharaOasis | `sahara_oasis.jpg` | ⭐ Haute |
+| **Palais**, Palace | Palais | `palais.jpg` | ⭐ Haute |
+| **Suite** (générique) | JasminSuitePicture | `JasminSuitePicture.jpg` | 🔍 Fallback |
+| **Par défaut** | JasminSuitePicture | `JasminSuitePicture.jpg` | 🔍 Fallback |
+
+### Fonctionnement
+La fonction `getRoomImage(roomType)` dans `Rooms.tsx` :
+1. Convertit le type en minuscules
+2. Recherche des mots-clés dans le type **par ordre de priorité**
+3. Retourne l'image correspondante
+4. Utilise une image par défaut si aucune correspondance
+
+### ⚠️ **Ordre des conditions important !**
+Le système vérifie les conditions **du plus spécifique au plus général** :
+
+```typescript
+// ✅ CORRECT : Spécifique d'abord
+if (type.includes('royal suite')) {
+    return Chambre5; // Royal Suite → Chambre5
+} else if (type.includes('suite')) {
+    return JasminSuitePicture; // Suite générique → JasminSuite
+}
+
+// ❌ INCORRECT : Générique d'abord
+if (type.includes('suite')) {
+    return JasminSuitePicture; // "Royal Suite" → JasminSuite (ERREUR!)
+} else if (type.includes('royal suite')) {
+    return Chambre5; // Ne sera jamais atteint!
+}
+```
+
+**Pourquoi ça marche maintenant :**
+- `"Royal Suite"` → vérifie `'royal suite'` d'abord → ✅ `Chambre5.webp`
+- `"Suite Standard"` → ne match pas les suites spécifiques → vérifie `'suite'` → ✅ `JasminSuitePicture.jpg`
+
+### Ajout de nouveaux types
+Pour ajouter un nouveau type de chambre :
+1. Importer la nouvelle image
+2. Ajouter une condition dans `getRoomImage()`
+3. Définir les mots-clés de correspondance
 
 ## 🔧 Configuration de production
-
-### Backend
 - Configurer les profils Spring (`dev`, `prod`)
 - Optimiser les connexions base de données
 - Activer le cache si nécessaire
-
-### Frontend
 - Build optimisé : `npm run build`
 - Configuration du proxy pour l'API
 - Optimisation des assets
