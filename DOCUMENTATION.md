@@ -199,12 +199,7 @@ Quand un admin réserve pour un client, l'interface affiche :
 2. Configurer `.env` avec les URLs Supabase et backend
 3. Démarrer avec `npm run dev`
 
-### Variables d'environnement (.env)
-```properties
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_API_BASE_URL=http://localhost:8080/overlook_hotel
-```
+
 
 ## 🔧 Configuration de production
 
