@@ -115,7 +115,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ open, onClose, room
         return nights * pricePerNight;
     };
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         // Validate form
         if (!checkInDate || !checkOutDate) {
             setError('Veuillez sélectionner les dates de séjour');
@@ -140,6 +140,25 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ open, onClose, room
         }
 
         if (room) {
+            // Check room availability before adding to cart
+            try {
+                const response = await fetch(`http://localhost:8080/overlook_hotel/api/rooms/${room.id}/availability`);
+                if (response.ok) {
+                    const availabilityData = await response.json();
+                    if (!availabilityData.available) {
+                        setError('Cette chambre n\'est plus disponible pour la réservation.');
+                        return;
+                    }
+                } else {
+                    setError('Erreur lors de la vérification de la disponibilité de la chambre.');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking room availability:', error);
+                setError('Erreur lors de la vérification de la disponibilité de la chambre.');
+                return;
+            }
+
             const cartItem = {
                 room,
                 checkInDate,

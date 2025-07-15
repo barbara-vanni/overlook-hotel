@@ -44,4 +44,9 @@ public class ReservationController {
         reservationService.deleteReservation(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/client/{clientId}")
+    public List<Reservation> getReservationsByClientId(@PathVariable UUID clientId) {
+        return reservationService.getReservationsByClientId(clientId);
+    }
 }

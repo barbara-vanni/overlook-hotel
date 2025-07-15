@@ -11,6 +11,7 @@ import {
 import axios from "axios";
 import UserProfileForm from "./UserProfileForm";
 import AbsenceList from "./AbsenceList.tsx";
+import ClientReservations from "../components/ClientReservations/ClientReservations";
 
 interface UserData {
     firstName: string;
@@ -119,7 +120,7 @@ const UserDashboard: React.FC = () => {
 
                     {/* Réservations ou congés */}
                     {tabIndex === 1 && isClient && (
-                        <Typography>Contenu des réservations (à définir)</Typography>
+                        <ClientReservations clientId={id!} />
                     )}
                     {tabIndex === 1 && isProfile && (
                         <AbsenceList profileId={id!} />

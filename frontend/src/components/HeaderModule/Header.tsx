@@ -22,9 +22,13 @@ const Header = () => {
     const navigate = useNavigate();
     const { getItemCount } = useCart();
     const isAuthenticated = localStorage.getItem("accessToken");
+    const userRole = localStorage.getItem("userRole");
+    const userId = localStorage.getItem("userId");
 
     const handleLogout = () => {
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userRole");
         navigate("/login");
     };
 
@@ -32,7 +36,13 @@ const Header = () => {
         navigate("/cart");
     };
 
-    const userId = localStorage.getItem("userId");
+    const handleProfileClick = () => {
+        if (userRole === "client") {
+            navigate(`/client/${userId}`);
+        } else {
+            navigate(`/profile/${userId}`);
+        }
+    };
 
     return (
         <header className="header">

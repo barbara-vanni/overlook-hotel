@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, UUID> {
-//    List<Reservation> findByClientId(UUID clientId);
-//    List<Reservation> findByRoomId(UUID roomId);
-//    List<Reservation> findByCancel(boolean cancel);
+    List<Reservation> findByClientId(UUID clientId);
+    List<Reservation> findByRoomId(UUID roomId);
+    List<Reservation> findByCancel(boolean cancel);
 }

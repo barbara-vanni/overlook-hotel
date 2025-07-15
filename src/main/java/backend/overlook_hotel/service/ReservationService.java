@@ -42,4 +42,8 @@ public class ReservationService {
     public void deleteReservation(UUID id) {
         reservationRepository.deleteById(id);
     }
+
+    public List<Reservation> getReservationsByClientId(UUID clientId) {
+        return reservationRepository.findByClientId(clientId);
+    }
 }

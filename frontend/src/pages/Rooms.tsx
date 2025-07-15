@@ -183,6 +183,17 @@ const ReserveButton = styled(Button)(({ theme }) => ({
         backgroundColor: 'transparent',
         color: '#a67c52',
         borderColor: '#a67c52'
+    },
+    '&:disabled': {
+        backgroundColor: '#cccccc',
+        color: '#666666',
+        borderColor: '#cccccc',
+        cursor: 'not-allowed',
+        '&:hover': {
+            backgroundColor: '#cccccc',
+            color: '#666666',
+            borderColor: '#cccccc'
+        }
     }
 }));
 
@@ -330,6 +341,16 @@ const Rooms = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Helper function to check if room is reserved (handles both English and French statuses)
+    const isRoomReserved = (status: string) => {
+        return status === 'reserved' || status === 'reserve' || status === 'réservé';
+    };
+
+    // Helper function to check if room is available (handles both English and French statuses)
+    const isRoomAvailable = (status: string) => {
+        return status === 'available' || status === 'libre';
+    };
+
     useEffect(() => {
         fetch('http://localhost:8080/overlook_hotel/api/rooms')
             .then(response => {
@@ -360,13 +381,31 @@ const Rooms = () => {
         setSelectedRoom(null);
     };
 
-    const handleOpenReservationModal = (room: any) => {
+    const handleOpenReservationModal = async (room: any) => {
         // Check if user is authenticated before opening reservation modal
         const isAuthenticated = localStorage.getItem("accessToken");
         if (!isAuthenticated) {
             if (confirm("Vous devez être connecté pour réserver une chambre. Voulez-vous aller à la page de connexion maintenant ?")) {
                 navigate("/login");
             }
+            return;
+        }
+
+        // Check if room is available before opening reservation modal
+        try {
+            const response = await fetch(`http://localhost:8080/overlook_hotel/api/rooms/${room.id}/availability`);
+            if (response.ok) {
+                const availabilityData = await response.json();
+                if (!availabilityData.available) {
+                    alert("Cette chambre n'est plus disponible pour la réservation.");
+                    // Refresh rooms list to update status
+                    window.location.reload();
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error('Error checking room availability:', error);
+            alert("Erreur lors de la vérification de la disponibilité de la chambre.");
             return;
         }
         
@@ -447,12 +486,28 @@ const Rooms = () => {
                                                 <RoomDescription>
                                                     Capacité: {room.capacity}<br />
                                                     Statut: {room.status}
+                                                    {isRoomReserved(room.status) && (
+                                                        <Box sx={{ 
+                                                            color: '#ff6b6b', 
+                                                            fontWeight: 'bold', 
+                                                            marginTop: 1,
+                                                            padding: '4px 8px',
+                                                            backgroundColor: '#ffe5e5',
+                                                            borderRadius: '4px',
+                                                            display: 'inline-block'
+                                                        }}>
+                                                            Chambre réservée
+                                                        </Box>
+                                                    )}
                                                 </RoomDescription>
                                                 <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
                                                 </DiscoverButton>
-                                                <ReserveButton onClick={() => handleOpenReservationModal(room)}>
-                                                    Réservez Maintenant
+                                                <ReserveButton 
+                                                    onClick={() => handleOpenReservationModal(room)}
+                                                    disabled={isRoomReserved(room.status)}
+                                                >
+                                                    {isRoomReserved(room.status) ? 'Non Disponible' : 'Réservez Maintenant'}
                                                 </ReserveButton>
                                             </RoomContent>
                                         </Grid>
@@ -495,12 +550,28 @@ const Rooms = () => {
                                                 <RoomDescription>
                                                     Capacité: {room.capacity}<br />
                                                     Statut: {room.status}
+                                                    {isRoomReserved(room.status) && (
+                                                        <Box sx={{ 
+                                                            color: '#ff6b6b', 
+                                                            fontWeight: 'bold', 
+                                                            marginTop: 1,
+                                                            padding: '4px 8px',
+                                                            backgroundColor: '#ffe5e5',
+                                                            borderRadius: '4px',
+                                                            display: 'inline-block'
+                                                        }}>
+                                                            Chambre réservée
+                                                        </Box>
+                                                    )}
                                                 </RoomDescription>
                                                 <DiscoverButton onClick={() => handleOpenModal(room)}>
                                                     Découvrez
                                                 </DiscoverButton>
-                                                <ReserveButton onClick={() => handleOpenReservationModal(room)}>
-                                                    Réservez Maintenant
+                                                <ReserveButton 
+                                                    onClick={() => handleOpenReservationModal(room)}
+                                                    disabled={isRoomReserved(room.status)}
+                                                >
+                                                    {isRoomReserved(room.status) ? 'Non Disponible' : 'Réservez Maintenant'}
                                                 </ReserveButton>
                                             </RoomContent>
                                         </Grid>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Grid, 
     Container, 
     Typography, 
     Box, 
@@ -10,8 +9,8 @@ import {
     InputLabel, 
     Select, 
     MenuItem,
-    Card,
-    CardContent
+    Alert,
+    Snackbar
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
@@ -107,7 +106,7 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
     }
 }));
 
-const StyledTextField = styled(TextField)(({ theme }) => ({
+const StyledTextField = styled(TextField)(() => ({
     '& .MuiOutlinedInput-root': {
         borderRadius: 0,
         backgroundColor: '#ffffff',
@@ -133,7 +132,7 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
     }
 }));
 
-const StyledSelect = styled(Select)(({ theme }) => ({
+const StyledSelect = styled(Select)(() => ({
     borderRadius: 0,
     backgroundColor: '#ffffff',
     fontFamily: '"Inter", sans-serif',
@@ -221,6 +220,9 @@ const Reservations = () => {
     const [availableRooms, setAvailableRooms] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertSeverity, setAlertSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('info');
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -242,7 +244,7 @@ const Reservations = () => {
             
             const url = formData.guests > 1 
                 ? `http://localhost:8080/overlook_hotel/api/rooms/available?minCapacity=${formData.guests}`
-                : 'http://localhost:8080/overlook_hotel/api/rooms';
+                : 'http://localhost:8080/overlook_hotel/api/rooms/available';
                 
             fetch(url)
                 .then(response => {
@@ -252,7 +254,7 @@ const Reservations = () => {
                     return response.json();
                 })
                 .then(data => {
-                    setAvailableRooms(data.filter((room: any) => room.status !== 'reserve'));
+                    setAvailableRooms(data);
                     setLoading(false);
                     // Reset room selection if current selection is no longer available
                     if (formData.roomId && !data.find((room: any) => room.id === formData.roomId)) {
@@ -268,6 +270,126 @@ const Reservations = () => {
 
         fetchAvailableRooms();
     }, [formData.guests]);
+
+    const checkRoomAvailability = async (roomId: string): Promise<boolean> => {
+        try {
+            const response = await fetch(`http://localhost:8080/overlook_hotel/api/rooms/${roomId}/availability`);
+            if (response.ok) {
+                const data = await response.json();
+                return data.available;
+            }
+        } catch (error) {
+            console.error('Error checking room availability:', error);
+        }
+        return false;
+    };
+
+    const handleReservation = async () => {
+        if (!formData.roomId) {
+            showAlert('Veuillez sélectionner une chambre', 'warning');
+            return;
+        }
+
+        // Check if required fields are filled
+        if (!formData.firstName || !formData.lastName || !formData.email || !formData.checkIn || !formData.checkOut) {
+            showAlert('Veuillez remplir tous les champs obligatoires', 'warning');
+            return;
+        }
+
+        // Check room availability before attempting reservation
+        const isAvailable = await checkRoomAvailability(formData.roomId);
+        if (!isAvailable) {
+            showAlert('Cette chambre n\'est plus disponible. Elle a été réservée par un autre client.', 'error');
+            // Refresh the available rooms list
+            const fetchAvailableRooms = async () => {
+                setLoading(true);
+                const url = formData.guests > 1 
+                    ? `http://localhost:8080/overlook_hotel/api/rooms/available?minCapacity=${formData.guests}`
+                    : 'http://localhost:8080/overlook_hotel/api/rooms/available';
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    setAvailableRooms(data);
+                    setFormData(prev => ({ ...prev, roomId: '' }));
+                } catch (error) {
+                    console.error('Error refreshing rooms:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchAvailableRooms();
+            return;
+        }
+
+        // Attempt to create a full reservation
+        try {
+            // Get client ID from localStorage (from authentication)
+            const userId = localStorage.getItem("userId");
+            if (!userId) {
+                showAlert('Vous devez être connecté pour réserver', 'error');
+                return;
+            }
+
+            const reservationData = {
+                clientId: userId,
+                roomId: formData.roomId,
+                checkInDate: formData.checkIn,
+                checkOutDate: formData.checkOut,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                phone: formData.phone,
+                guests: formData.guests,
+                specialRequests: formData.specialRequests
+            };
+
+            const response = await fetch(`http://localhost:8080/overlook_hotel/api/rooms/reserve`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(reservationData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showAlert('Réservation confirmée avec succès!', 'success');
+                // Reset form
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    phone: '',
+                    checkIn: '',
+                    checkOut: '',
+                    roomId: '', 
+                    guests: 1,
+                    specialRequests: ''
+                });
+                // Refresh available rooms
+                const url = formData.guests > 1 
+                    ? `http://localhost:8080/overlook_hotel/api/rooms/available?minCapacity=${formData.guests}`
+                    : 'http://localhost:8080/overlook_hotel/api/rooms/available';
+                fetch(url).then(res => res.json()).then(setAvailableRooms);
+            } else {
+                showAlert(data.message || 'Erreur lors de la réservation', 'error');
+            }
+        } catch (error) {
+            console.error('Error making reservation:', error);
+            showAlert('Erreur de connexion lors de la réservation', 'error');
+        }
+    };
+
+    const showAlert = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
+        setAlertMessage(message);
+        setAlertSeverity(severity);
+        setAlertOpen(true);
+    };
+
+    const handleAlertClose = () => {
+        setAlertOpen(false);
+    };
 
     const handleInputChange = (field: string) => (event: any) => {
         setFormData({
@@ -297,156 +419,230 @@ const Reservations = () => {
                     </SectionTitle>
                     <FormDescription>
                         Complétez ce formulaire pour réserver votre séjour au Aladdin's Hotel. 
-                        Sélectionnez d'abord le nombre d'invités pour voir les chambres disponibles qui peuvent vous accueillir.
-                        Notre équipe vous contactera dans les plus brefs délais pour confirmer votre réservation.
+                        Sélectionnez d'abord le nombre d'invités pour voir automatiquement les chambres disponibles qui peuvent vous accueillir.
                     </FormDescription>
                     
-                    <Grid container spacing={6} sx={{ marginTop: 2, justifyContent: 'center', alignItems: 'center' }}>
-                        <Grid item xs={12} md={6}>
-                            <StyledTextField
-                                fullWidth
-                                label="Prénom"
-                                value={formData.firstName}
-                                onChange={handleInputChange('firstName')}
-                                variant="outlined"
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <StyledTextField
-                                fullWidth
-                                label="Nom"
-                                value={formData.lastName}
-                                onChange={handleInputChange('lastName')}
-                                variant="outlined"
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <StyledTextField
-                                fullWidth
-                                label="Email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleInputChange('email')}
-                                variant="outlined"
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <StyledTextField
-                                fullWidth
-                                label="Téléphone"
-                                value={formData.phone}
-                                onChange={handleInputChange('phone')}
-                                variant="outlined"
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <StyledTextField
-                                fullWidth
-                                label="Date d'arrivée"
-                                type="date"
-                                value={formData.checkIn}
-                                onChange={handleInputChange('checkIn')}
-                                variant="outlined"
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                                inputProps={{
-                                    min: new Date().toISOString().split('T')[0]
-                                }}
-                                onFocus={(e) => e.target.showPicker()}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <StyledTextField
-                                fullWidth
-                                label="Date de départ"
-                                type="date"
-                                value={formData.checkOut}
-                                onChange={handleInputChange('checkOut')}
-                                variant="outlined"
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                                inputProps={{
-                                    min: new Date().toISOString().split('T')[0]
-                                }}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth>
-                                <InputLabel
-                                    sx={{
-                                        fontFamily: '"Inter", sans-serif',
-                                        color: '#2c2c2c',
-                                        minWidth: '120px',
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4, marginTop: 4 }}>
+                        {/* Left Column - Guest Selection and Room Search */}
+                        <Box sx={{ flex: 1 }}>
+                            <Box sx={{ 
+                                backgroundColor: '#ffffff', 
+                                padding: 4, 
+                                border: '1px solid #d4c4a8',
+                                marginBottom: 4
+                            }}>
+                                <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                        fontFamily: '"Playfair Display", serif',
+                                        color: '#a67c52',
+                                        marginBottom: 3,
+                                        textAlign: 'center',
+                                        fontSize: '1.5rem'
                                     }}
                                 >
-                                    Chambre disponible
-                                </InputLabel>
-                                <StyledSelect
-                                    value={formData.roomId}
-                                    onChange={handleInputChange('roomId')}
-                                    label="Chambre disponible"
-                                    disabled={loading || availableRooms.length === 0}
-                                >
-                                    {loading ? (
-                                        <MenuItem value="" sx={{ fontFamily: '"Inter", sans-serif' }}>
-                                            Chargement...
-                                        </MenuItem>
-                                    ) : availableRooms.length === 0 ? (
-                                        <MenuItem value="" sx={{ fontFamily: '"Inter", sans-serif' }}>
-                                            Aucune chambre disponible pour {formData.guests} invité{formData.guests > 1 ? 's' : ''}
-                                        </MenuItem>
-                                    ) : (
-                                        availableRooms.map((room) => (
-                                            <MenuItem key={room.id} value={room.id} sx={{ fontFamily: '"Inter", sans-serif' }}>
-                                                {room.type} - Capacité: {room.capacity} personne{room.capacity > 1 ? 's' : ''}
-                                            </MenuItem>
-                                        ))
-                                    )}
-                                </StyledSelect>
-                                {error && (
-                                    <Typography 
-                                        variant="caption" 
-                                        color="error" 
-                                        sx={{ mt: 1, fontFamily: '"Inter", sans-serif' }}
+                                    Recherche de Chambre
+                                </Typography>
+                                
+                                <FormControl fullWidth sx={{ marginBottom: 3 }}>
+                                    <InputLabel sx={{ fontFamily: '"Inter", sans-serif', color: '#2c2c2c' }}>
+                                        Nombre d'invités
+                                    </InputLabel>
+                                    <StyledSelect
+                                        value={formData.guests}
+                                        onChange={handleInputChange('guests')}
+                                        label="Nombre d'invités"
                                     >
-                                        {error}
-                                    </Typography>
-                                )}
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth>
-                                <InputLabel sx={{ fontFamily: '"Inter", sans-serif', color: '#2c2c2c' }}>
-                                    Nombre d'invités
-                                </InputLabel>
-                                <StyledSelect
-                                    value={formData.guests}
-                                    onChange={handleInputChange('guests')}
-                                    label="Nombre d'invités"
+                                        {[1, 2, 3, 4, 5, 6].map((num) => (
+                                            <MenuItem key={num} value={num} sx={{ fontFamily: '"Inter", sans-serif' }}>
+                                                {num} {num === 1 ? 'personne' : 'personnes'}
+                                            </MenuItem>
+                                        ))}
+                                    </StyledSelect>
+                                </FormControl>
+
+                                <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                        fontFamily: '"Inter", sans-serif',
+                                        color: '#666',
+                                        marginBottom: 2,
+                                        textAlign: 'center',
+                                        fontStyle: 'italic'
+                                    }}
                                 >
-                                    {[1, 2, 3, 4, 5, 6].map((num) => (
-                                        <MenuItem key={num} value={num} sx={{ fontFamily: '"Inter", sans-serif' }}>
-                                            {num} {num === 1 ? 'personne' : 'personnes'}
-                                        </MenuItem>
-                                    ))}
-                                </StyledSelect>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12}>
+                                    {availableRooms.length > 0 
+                                        ? `${availableRooms.length} chambre${availableRooms.length > 1 ? 's' : ''} disponible${availableRooms.length > 1 ? 's' : ''} pour ${formData.guests} invité${formData.guests > 1 ? 's' : ''} ou plus`
+                                        : `Aucune chambre disponible pour ${formData.guests} invité${formData.guests > 1 ? 's' : ''}`
+                                    }
+                                </Typography>
+                                
+                                <FormControl fullWidth>
+                                    <InputLabel
+                                        sx={{
+                                            fontFamily: '"Inter", sans-serif',
+                                            color: '#2c2c2c',
+                                        }}
+                                    >
+                                        Chambre sélectionnée
+                                    </InputLabel>
+                                    <StyledSelect
+                                        value={formData.roomId}
+                                        onChange={handleInputChange('roomId')}
+                                        label="Chambre sélectionnée"
+                                        disabled={loading || availableRooms.length === 0}
+                                    >
+                                        {loading ? (
+                                            <MenuItem value="" sx={{ fontFamily: '"Inter", sans-serif' }}>
+                                                Recherche en cours...
+                                            </MenuItem>
+                                        ) : availableRooms.length === 0 ? (
+                                            <MenuItem value="" sx={{ fontFamily: '"Inter", sans-serif' }}>
+                                                Aucune chambre disponible
+                                            </MenuItem>
+                                        ) : (
+                                            availableRooms.map((room) => (
+                                                <MenuItem key={room.id} value={room.id} sx={{ fontFamily: '"Inter", sans-serif' }}>
+                                                    {room.type} - Capacité: {room.capacity} personne{room.capacity > 1 ? 's' : ''}
+                                                    {room.status === 'available' && ' ✓ Disponible'}
+                                                </MenuItem>
+                                            ))
+                                        )}
+                                    </StyledSelect>
+                                    {error && (
+                                        <Typography 
+                                            variant="caption" 
+                                            color="error" 
+                                            sx={{ mt: 1, fontFamily: '"Inter", sans-serif' }}
+                                        >
+                                            {error}
+                                        </Typography>
+                                    )}
+                                </FormControl>
+                            </Box>
+                        </Box>
+
+                        {/* Right Column - Personal Information */}
+                        <Box sx={{ flex: 1 }}>
+                            <Box sx={{ 
+                                backgroundColor: '#ffffff', 
+                                padding: 4, 
+                                border: '1px solid #d4c4a8',
+                                marginBottom: 4
+                            }}>
+                                <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                        fontFamily: '"Playfair Display", serif',
+                                        color: '#a67c52',
+                                        marginBottom: 3,
+                                        textAlign: 'center',
+                                        fontSize: '1.5rem'
+                                    }}
+                                >
+                                    Informations Personnelles
+                                </Typography>
+                                
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                    <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                                        <StyledTextField
+                                            fullWidth
+                                            label="Prénom"
+                                            value={formData.firstName}
+                                            onChange={handleInputChange('firstName')}
+                                            variant="outlined"
+                                        />
+                                        <StyledTextField
+                                            fullWidth
+                                            label="Nom"
+                                            value={formData.lastName}
+                                            onChange={handleInputChange('lastName')}
+                                            variant="outlined"
+                                        />
+                                    </Box>
+                                    <StyledTextField
+                                        fullWidth
+                                        label="Email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange('email')}
+                                        variant="outlined"
+                                    />
+                                    <StyledTextField
+                                        fullWidth
+                                        label="Téléphone"
+                                        value={formData.phone}
+                                        onChange={handleInputChange('phone')}
+                                        variant="outlined"
+                                    />
+                                </Box>
+                            </Box>
+                        </Box>
+                    </Box>
+
+                    {/* Full Width - Dates and Special Requests */}
+                    <Box sx={{ 
+                        backgroundColor: '#ffffff', 
+                        padding: 4, 
+                        border: '1px solid #d4c4a8',
+                        marginBottom: 4
+                    }}>
+                        <Typography 
+                            variant="h6" 
+                            sx={{ 
+                                fontFamily: '"Playfair Display", serif',
+                                color: '#a67c52',
+                                marginBottom: 3,
+                                textAlign: 'center',
+                                fontSize: '1.5rem'
+                            }}
+                        >
+                            Dates de Séjour
+                        </Typography>
+                        
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', md: 'row' } }}>
+                                <StyledTextField
+                                    fullWidth
+                                    label="Date d'arrivée"
+                                    type="date"
+                                    value={formData.checkIn}
+                                    onChange={handleInputChange('checkIn')}
+                                    variant="outlined"
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                    inputProps={{
+                                        min: new Date().toISOString().split('T')[0]
+                                    }}
+                                />
+                                <StyledTextField
+                                    fullWidth
+                                    label="Date de départ"
+                                    type="date"
+                                    value={formData.checkOut}
+                                    onChange={handleInputChange('checkOut')}
+                                    variant="outlined"
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                    inputProps={{
+                                        min: formData.checkIn || new Date().toISOString().split('T')[0]
+                                    }}
+                                />
+                            </Box>
                             <StyledTextField
                                 fullWidth
-                                label="Demandes spéciales"
+                                label="Demandes spéciales (optionnel)"
                                 multiline
-                                rows={4}
+                                rows={3}
                                 value={formData.specialRequests}
                                 onChange={handleInputChange('specialRequests')}
                                 variant="outlined"
                                 placeholder="Veuillez nous faire part de vos demandes spéciales..."
                             />
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Box>
 
                     {formData.roomId && formData.checkIn && formData.checkOut && (() => {
                         const selectedRoom = availableRooms.find(room => room.id === formData.roomId);
@@ -465,12 +661,29 @@ const Reservations = () => {
                     })()}
 
                     <Box sx={{ textAlign: 'center' }}>
-                        <ReserveButton>
+                        <ReserveButton onClick={handleReservation}>
                             Confirmer la Réservation
                         </ReserveButton>
                     </Box>
                 </ReservationForm>
             </Container>
+
+            {/* Alert Snackbar */}
+            <Snackbar 
+                open={alertOpen} 
+                autoHideDuration={6000} 
+                onClose={handleAlertClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={handleAlertClose} 
+                    severity={alertSeverity} 
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {alertMessage}
+                </Alert>
+            </Snackbar>
         </StyledContainer>
     );
 }
