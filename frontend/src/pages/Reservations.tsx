@@ -11,7 +11,11 @@ import {
     Select, 
     MenuItem,
     Alert,
-    Snackbar
+    Snackbar,
+    Card,
+    CardContent,
+    CircularProgress,
+    Divider
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
@@ -225,6 +229,8 @@ const Reservations = () => {
     const [alertOpen, setAlertOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+    const [clientInfo, setClientInfo] = useState<any>(null);
+    const [clientLoading, setClientLoading] = useState(false);
 
     // Read URL parameters for admin reservations
     const urlParams = new URLSearchParams(location.search);
@@ -278,6 +284,28 @@ const Reservations = () => {
 
         fetchAvailableRooms();
     }, [formData.guests]);
+
+    // Fetch client information when admin is making a reservation
+    useEffect(() => {
+        if (isAdminReservation && adminClientId) {
+            setClientLoading(true);
+            fetch(`http://localhost:8080/overlook_hotel/api/clients/${adminClientId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Erreur du serveur: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    setClientInfo(data);
+                    setClientLoading(false);
+                })
+                .catch(error => {
+                    console.error('Error fetching client info:', error);
+                    setClientLoading(false);
+                });
+        }
+    }, [isAdminReservation, adminClientId]);
 
     const checkRoomAvailability = async (roomId: string): Promise<boolean> => {
         try {
@@ -433,21 +461,185 @@ const Reservations = () => {
 
             <Container maxWidth="lg">
                 <ReservationForm>
-                    {/* Admin reservation indicator */}
+                    {/* Admin reservation - Client Information Section */}
                     {isAdminReservation && (
-                        <Alert 
-                            severity="info" 
+                        <Card 
                             sx={{ 
-                                mb: 3,
-                                backgroundColor: '#e3f2fd',
-                                color: '#1565c0',
-                                fontFamily: '"Inter", sans-serif'
+                                mb: 4,
+                                border: '2px solid #a67c52',
+                                borderRadius: 2,
+                                backgroundColor: '#fafafa'
                             }}
                         >
-                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                                Vous réservez pour le client: <strong>{decodeURIComponent(adminClientName || '')}</strong>
-                            </Typography>
-                        </Alert>
+                            <CardContent sx={{ p: 3 }}>
+                                <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                        fontFamily: '"Playfair Display", serif',
+                                        color: '#a67c52',
+                                        mb: 3,
+                                        textAlign: 'center',
+                                        fontSize: '1.8rem'
+                                    }}
+                                >
+                                    Informations du Client
+                                </Typography>
+                                
+                                {clientLoading ? (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                                        <CircularProgress sx={{ color: '#a67c52' }} />
+                                        <Typography sx={{ ml: 2, fontFamily: '"Inter", sans-serif' }}>
+                                            Chargement des informations client...
+                                        </Typography>
+                                    </Box>
+                                ) : clientInfo ? (
+                                    <Box>
+                                        <Alert 
+                                            severity="info" 
+                                            sx={{ 
+                                                mb: 3,
+                                                backgroundColor: '#e3f2fd',
+                                                color: '#1565c0',
+                                                fontFamily: '"Inter", sans-serif'
+                                            }}
+                                        >
+                                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                                Vous réservez pour le client suivant:
+                                            </Typography>
+                                        </Alert>
+                                        
+                                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                                            <Box sx={{ p: 2, backgroundColor: '#ffffff', borderRadius: 1, border: '1px solid #d4c4a8' }}>
+                                                <Typography 
+                                                    variant="subtitle2" 
+                                                    sx={{ 
+                                                        fontFamily: '"Playfair Display", serif',
+                                                        color: '#a67c52',
+                                                        fontWeight: 'bold',
+                                                        mb: 1
+                                                    }}
+                                                >
+                                                    Nom complet
+                                                </Typography>
+                                                <Typography 
+                                                    variant="body1" 
+                                                    sx={{ 
+                                                        fontFamily: '"Inter", sans-serif',
+                                                        color: '#2c2c2c',
+                                                        fontWeight: 'medium'
+                                                    }}
+                                                >
+                                                    {clientInfo.firstName} {clientInfo.lastName}
+                                                </Typography>
+                                            </Box>
+                                            
+                                            <Box sx={{ p: 2, backgroundColor: '#ffffff', borderRadius: 1, border: '1px solid #d4c4a8' }}>
+                                                <Typography 
+                                                    variant="subtitle2" 
+                                                    sx={{ 
+                                                        fontFamily: '"Playfair Display", serif',
+                                                        color: '#a67c52',
+                                                        fontWeight: 'bold',
+                                                        mb: 1
+                                                    }}
+                                                >
+                                                    Email
+                                                </Typography>
+                                                <Typography 
+                                                    variant="body1" 
+                                                    sx={{ 
+                                                        fontFamily: '"Inter", sans-serif',
+                                                        color: '#2c2c2c'
+                                                    }}
+                                                >
+                                                    {clientInfo.email}
+                                                </Typography>
+                                            </Box>
+                                            
+                                            <Box sx={{ p: 2, backgroundColor: '#ffffff', borderRadius: 1, border: '1px solid #d4c4a8' }}>
+                                                <Typography 
+                                                    variant="subtitle2" 
+                                                    sx={{ 
+                                                        fontFamily: '"Playfair Display", serif',
+                                                        color: '#a67c52',
+                                                        fontWeight: 'bold',
+                                                        mb: 1
+                                                    }}
+                                                >
+                                                    Téléphone
+                                                </Typography>
+                                                <Typography 
+                                                    variant="body1" 
+                                                    sx={{ 
+                                                        fontFamily: '"Inter", sans-serif',
+                                                        color: '#2c2c2c'
+                                                    }}
+                                                >
+                                                    {clientInfo.phone || 'Non renseigné'}
+                                                </Typography>
+                                            </Box>
+                                            
+                                            <Box sx={{ p: 2, backgroundColor: '#ffffff', borderRadius: 1, border: '1px solid #d4c4a8' }}>
+                                                <Typography 
+                                                    variant="subtitle2" 
+                                                    sx={{ 
+                                                        fontFamily: '"Playfair Display", serif',
+                                                        color: '#a67c52',
+                                                        fontWeight: 'bold',
+                                                        mb: 1
+                                                    }}
+                                                >
+                                                    Date de naissance
+                                                </Typography>
+                                                <Typography 
+                                                    variant="body1" 
+                                                    sx={{ 
+                                                        fontFamily: '"Inter", sans-serif',
+                                                        color: '#2c2c2c'
+                                                    }}
+                                                >
+                                                    {clientInfo.birth ? new Date(clientInfo.birth).toLocaleDateString('fr-FR') : 'Non renseigné'}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        
+                                        <Divider sx={{ my: 3, backgroundColor: '#d4c4a8' }} />
+                                        
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+                                            <Button
+                                                variant="outlined"
+                                                sx={{
+                                                    color: '#a67c52',
+                                                    borderColor: '#a67c52',
+                                                    fontFamily: '"Inter", sans-serif',
+                                                    textTransform: 'none',
+                                                    '&:hover': {
+                                                        backgroundColor: '#a67c52',
+                                                        color: '#ffffff'
+                                                    }
+                                                }}
+                                                onClick={() => window.open(`/user-profile-form?clientId=${adminClientId}`, '_blank')}
+                                            >
+                                                Voir le profil complet du client
+                                            </Button>
+                                        </Box>
+                                    </Box>
+                                ) : (
+                                    <Alert 
+                                        severity="warning" 
+                                        sx={{ 
+                                            backgroundColor: '#fff3cd',
+                                            color: '#856404',
+                                            fontFamily: '"Inter", sans-serif'
+                                        }}
+                                    >
+                                        <Typography variant="body1">
+                                            Impossible de charger les informations du client: <strong>{decodeURIComponent(adminClientName || '')}</strong>
+                                        </Typography>
+                                    </Alert>
+                                )}
+                            </CardContent>
+                        </Card>
                     )}
                     
                     <SectionTitle>
