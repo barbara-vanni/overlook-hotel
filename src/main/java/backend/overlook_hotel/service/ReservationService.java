@@ -1,6 +1,7 @@
 package backend.overlook_hotel.service;
 
 import backend.overlook_hotel.model.Reservation;
+import backend.overlook_hotel.model.Room;
 import backend.overlook_hotel.repository.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,9 @@ public class ReservationService {
 
     @Autowired
     private ReservationRepository reservationRepository;
+    
+    @Autowired
+    private RoomService roomService;
 
     public List<Reservation> getAllReservations() {
         return reservationRepository.findAll();
@@ -24,7 +28,18 @@ public class ReservationService {
     }
 
     public Reservation createReservation(Reservation reservation) {
-        return reservationRepository.save(reservation);
+        // Save the reservation first
+        Reservation savedReservation = reservationRepository.save(reservation);
+        
+        // Update the room status to "reserved"
+        Optional<Room> roomOpt = roomService.getRoomById(reservation.getRoom().getId());
+        if (roomOpt.isPresent()) {
+            Room room = roomOpt.get();
+            room.setStatus("reserve");
+            roomService.updateRoom(room.getId(), room);
+        }
+        
+        return savedReservation;
     }
 
     public Reservation updateReservation(UUID id, Reservation updated) {
@@ -40,7 +55,22 @@ public class ReservationService {
     }
 
     public void deleteReservation(UUID id) {
-        reservationRepository.deleteById(id);
+        // Get the reservation before deleting to access the room
+        Optional<Reservation> reservationOpt = reservationRepository.findById(id);
+        if (reservationOpt.isPresent()) {
+            Reservation reservation = reservationOpt.get();
+            
+            // Delete the reservation
+            reservationRepository.deleteById(id);
+            
+            // Update the room status back to "available"
+            Optional<Room> roomOpt = roomService.getRoomById(reservation.getRoom().getId());
+            if (roomOpt.isPresent()) {
+                Room room = roomOpt.get();
+                room.setStatus("available");
+                roomService.updateRoom(room.getId(), room);
+            }
+        }
     }
 
     public List<Reservation> getReservationsByClientId(UUID clientId) {

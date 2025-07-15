@@ -321,7 +321,7 @@ const Reservations = () => {
             return;
         }
 
-        // Attempt to create a full reservation
+        // Create reservation directly with the backend structure
         try {
             // Get client ID from localStorage (from authentication)
             const userId = localStorage.getItem("userId");
@@ -330,20 +330,17 @@ const Reservations = () => {
                 return;
             }
 
+            // Minimal reservation data - just the essentials
             const reservationData = {
-                clientId: userId,
-                roomId: formData.roomId,
-                checkInDate: formData.checkIn,
-                checkOutDate: formData.checkOut,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email,
-                phone: formData.phone,
-                guests: formData.guests,
-                specialRequests: formData.specialRequests
+                client: { id: userId },
+                room: { id: formData.roomId },
+                enterDate: formData.checkIn,
+                endDate: formData.checkOut,
+                cancel: false,
+                stat: "oui"
             };
 
-            const response = await fetch(`http://localhost:8080/overlook_hotel/api/rooms/reserve`, {
+            const response = await fetch(`http://localhost:8080/overlook_hotel/api/reservations`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -351,10 +348,10 @@ const Reservations = () => {
                 body: JSON.stringify(reservationData)
             });
 
-            const data = await response.json();
-
-            if (response.ok && data.success) {
+            if (response.ok) {
+                const createdReservation = await response.json();
                 showAlert('Réservation confirmée avec succès!', 'success');
+                
                 // Reset form
                 setFormData({
                     firstName: '',
@@ -367,13 +364,15 @@ const Reservations = () => {
                     guests: 1,
                     specialRequests: ''
                 });
+                
                 // Refresh available rooms
                 const url = formData.guests > 1 
                     ? `http://localhost:8080/overlook_hotel/api/rooms/available?minCapacity=${formData.guests}`
                     : 'http://localhost:8080/overlook_hotel/api/rooms/available';
                 fetch(url).then(res => res.json()).then(setAvailableRooms);
             } else {
-                showAlert(data.message || 'Erreur lors de la réservation', 'error');
+                const errorData = await response.json();
+                showAlert(errorData.message || 'Erreur lors de la réservation', 'error');
             }
         } catch (error) {
             console.error('Error making reservation:', error);

@@ -1,8 +1,6 @@
 package backend.overlook_hotel.controller;
 
-import backend.overlook_hotel.dto.ReservationRequest;
 import backend.overlook_hotel.model.Room;
-import backend.overlook_hotel.model.Reservation;
 import backend.overlook_hotel.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +24,30 @@ public class RoomController {
         return roomService.getAllRooms();
     }
 
+    @GetMapping("/available")
+    public List<Room> getAvailableRooms(@RequestParam(required = false) Integer minCapacity) {
+        // For now, return all rooms - you can add filtering logic later
+        return roomService.getAllRooms();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Room> getRoomById(@PathVariable UUID id) {
         Optional<Room> room = roomService.getRoomById(id);
         return room.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/availability")
+    public ResponseEntity<Map<String, Boolean>> checkRoomAvailability(@PathVariable UUID id) {
+        Map<String, Boolean> response = new HashMap<>();
+        Optional<Room> room = roomService.getRoomById(id);
+        if (room.isPresent()) {
+            // For now, just return true - you can add real availability logic later
+            response.put("available", true);
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("available", false);
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping

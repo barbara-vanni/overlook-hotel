@@ -11,8 +11,8 @@ import java.util.UUID;
 
 @Repository
 public interface RoomRepository extends JpaRepository<Room, UUID> {
-    // List<Room> findByStatus(String status);
-    // List<Room> findByType(String type);
+    List<Room> findByStatus(String status);
+    List<Room> findByType(String type);
     
     @Query("SELECT r FROM Room r WHERE r.capacity >= :minCapacity")
     List<Room> findByCapacityGreaterThanEqual(@Param("minCapacity") Integer minCapacity);
