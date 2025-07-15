@@ -66,4 +66,8 @@ public class MessageService {
     public void deleteMessage(UUID id) {
         messageRepository.deleteById(id);
     }
+
+    public Message save(Message message) {
+        return messageRepository.save(message);
+    }
 }

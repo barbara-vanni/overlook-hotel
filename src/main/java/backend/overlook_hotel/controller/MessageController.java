@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,4 +45,24 @@ public class MessageController {
         messageService.deleteMessage(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/answer")
+    public ResponseEntity<Message> updateAnswer(@PathVariable UUID id, @RequestBody Map<String, String> body) {
+        try {
+            String answer = body.get("answer");
+            if (answer == null) return ResponseEntity.badRequest().build();
+
+            Message message = messageService.getMessageById(id).orElse(null);
+            if (message == null) return ResponseEntity.notFound().build();
+
+            message.setAnswer(answer);
+            Message updated = messageService.save(message);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+
 }

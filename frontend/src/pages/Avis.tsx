@@ -28,6 +28,12 @@ const Avis = () => {
     // const userName = localStorage.getItem("userName");
     const userRole = localStorage.getItem("userRole");
 
+    //state pour gèrer la réponse aux avi des clients (seulement pour un profil admin normalement )
+    const [replyContent, setReplyContent] = useState<{ [key: string]: string }>({});
+    const [isReplying, setIsReplying] = useState<{ [key: string]: boolean }>({});
+    const ALLOWED_ADMIN_ID = "193e4e90-1213-4753-820a-02bc324df8fb";
+
+
     useEffect(() => {
         axios.get(`${API_BASE}/api/messages`, {
             headers: {
@@ -63,8 +69,31 @@ const Avis = () => {
             .catch((err) => console.error("Erreur lors de l'ajout d'un avis :", err));
     };
 
+    const handleReplySubmit = (messageId: string) => {
+        if (!replyContent[messageId]) return;
 
-   return (
+        axios.patch(`${API_BASE}/api/messages/${messageId}/answer`, {
+            answer: replyContent[messageId],
+        }, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        })
+            .then((_) => {
+                setAvis((prev) =>
+                    prev.map((item) =>
+                        item.id === messageId ? { ...item, answer: replyContent[messageId] } : item
+                    )
+                );
+                setIsReplying((prev) => ({ ...prev, [messageId]: false }));
+                setReplyContent((prev) => ({ ...prev, [messageId]: "" }));
+            })
+            .catch((err) => console.error("Erreur lors de la réponse :", err));
+    };
+
+
+   // @ts-ignore
+    return (
         <Box sx={{ width: "100%", maxWidth:1500 , mx: "auto", mt: 20 }}>
             <AvisModal open={open} onClose={() => setOpen(false)} onSubmit={handleAddAvis} />
 
@@ -100,12 +129,63 @@ const Avis = () => {
                             <Typography variant="body1" sx={{ mt: 1 }}>
                                 {msg.message}
                             </Typography>
-                            {msg.answer && (
+                            {msg.answer ? (
                                 <Box sx={{ mt: 2, p: 1.5, bgcolor: "#f1f1f1", borderLeft: "4px solid #1976d2" }}>
                                     <Typography variant="body2" color="textSecondary">
                                         Réponse : {msg.answer}
                                     </Typography>
                                 </Box>
+                            ) : (
+                                (userRole === "admin" && userId === ALLOWED_ADMIN_ID) && (
+                                    <>
+                                        {isReplying[msg.id] ? (
+                                            <Box sx={{ mt: 2 }}>
+                    <textarea
+                        placeholder="Écrire une réponse..."
+                        value={replyContent[msg.id] || ""}
+                        onChange={(e) =>
+                            setReplyContent((prev) => ({
+                                ...prev,
+                                [msg.id]: e.target.value,
+                            }))
+                        }
+                        rows={3}
+                        style={{ width: "100%", padding: "8px" }}
+                    />
+                                                <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 1 }}>
+                                                    <Button
+                                                        size="small"
+                                                        variant="contained"
+                                                        onClick={() => handleReplySubmit(msg.id)}
+                                                    >
+                                                        Envoyer
+                                                    </Button>
+                                                    <Button
+                                                        size="small"
+                                                        variant="text"
+                                                        color="error"
+                                                        onClick={() =>
+                                                            setIsReplying((prev) => ({ ...prev, [msg.id]: false }))
+                                                        }
+                                                    >
+                                                        Annuler
+                                                    </Button>
+                                                </Box>
+                                            </Box>
+                                        ) : (
+                                            <Button
+                                                size="small"
+                                                variant="outlined"
+                                                sx={{ mt: 2 }}
+                                                onClick={() =>
+                                                    setIsReplying((prev) => ({ ...prev, [msg.id]: true }))
+                                                }
+                                            >
+                                                Répondre
+                                            </Button>
+                                        )}
+                                    </>
+                                )
                             )}
                         </Paper>
                     </Grid>
