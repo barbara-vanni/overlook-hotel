@@ -19,9 +19,12 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper
+    Paper,
+    IconButton
 } from "@mui/material";
 import axios from "axios";
+// @ts-ignore
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface Absence {
     id: string;
@@ -47,19 +50,20 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
     const [creationError, setCreationError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-    useEffect(() => {
-        const fetchAbsences = async () => {
-            try {
-                const res = await axios.get(`${API_BASE}/api/absences/by-profile/${profileId}`);
-                const conges = res.data.filter((a: Absence) => a.type === "conge");
-                setAbsences(conges);
-            } catch (err) {
-                console.error("Erreur lors du chargement des congés :", err);
-            }
-        };
+    const fetchAbsences = async () => {
+        try {
+            const res = await axios.get(`${API_BASE}/api/absences/by-profile/${profileId}`);
+            setAbsences(res.data);
+        } catch (err) {
+            console.error("Erreur lors du chargement des absences :", err);
+        }
+    };
 
+    useEffect(() => {
         fetchAbsences();
     }, [profileId, success]);
 
@@ -105,7 +109,7 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                 type,
                 startDate,
                 endDate,
-                cancel: "false",
+                cancel: false,
                 idProfil: profileId,
             });
 
@@ -117,28 +121,40 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
         }
     };
 
-    const lastFiveConges = [...absences]
+    const handleDelete = async () => {
+        if (!confirmDeleteId) return;
+
+        try {
+            await axios.delete(`${API_BASE}/api/absences/${confirmDeleteId}`);
+            setConfirmDeleteId(null);
+            fetchAbsences();
+        } catch (err) {
+            console.error("Erreur lors de la suppression :", err);
+        }
+    };
+
+    const lastFiveAbsences = [...absences]
         .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
         .slice(0, 5);
 
     return (
         <Box sx={{ mt: 4 }}>
             <Typography variant="h6" gutterBottom>
-                Mes congés
+                Mes absences
             </Typography>
 
             <Button variant="contained" onClick={handleOpen}>
-                Demander un congé
+                Demander une absence
             </Button>
 
             {success && (
                 <Alert severity="success" sx={{ mt: 2 }}>
-                    Congé demandé avec succès.
+                    Absence enregistrée avec succès.
                 </Alert>
             )}
 
             <Typography variant="subtitle1" sx={{ mt: 4, mb: 1 }}>
-                5 derniers congés
+                5 dernières absences
             </Typography>
             <TableContainer component={Paper} sx={{ mb: 2 }}>
                 <Table size="small">
@@ -146,18 +162,23 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                         <TableRow>
                             <TableCell>Date de début</TableCell>
                             <TableCell>Date de fin</TableCell>
-                            <TableCell>Statut</TableCell>
+                            <TableCell>Type</TableCell>
+                            <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {lastFiveConges.map((a) => (
+                        {lastFiveAbsences.map((a) => (
                             <TableRow key={a.id}>
                                 <TableCell>{a.startDate}</TableCell>
                                 <TableCell>{a.endDate}</TableCell>
-                                <TableCell>
-                                    <span style={{ color: a.cancel ? "red" : "green" }}>
-                                        {a.cancel ? "Annulé" : "Confirmé"}
-                                    </span>
+                                <TableCell>{a.type}</TableCell>
+                                <TableCell align="center">
+                                    <IconButton
+                                        color="error"
+                                        onClick={() => setConfirmDeleteId(a.id)}
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -170,7 +191,7 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                     <ListItem key={absence.id}>
                         <ListItemText
                             primary={`${absence.startDate} → ${absence.endDate}`}
-                            secondary={absence.cancel ? "Annulé" : "Confirmé"}
+                            secondary={absence.type}
                         />
                     </ListItem>
                 ))}
@@ -230,6 +251,20 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                     {creationError}
                 </Alert>
             )}
+
+            {/* ✅ Fenêtre de confirmation suppression */}
+            <Dialog open={!!confirmDeleteId} onClose={() => setConfirmDeleteId(null)}>
+                <DialogTitle>Confirmer la suppression</DialogTitle>
+                <DialogContent>
+                    <Typography>Voulez-vous vraiment supprimer cette absence ?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmDeleteId(null)}>Annuler</Button>
+                    <Button color="error" variant="contained" onClick={handleDelete}>
+                        Supprimer
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
