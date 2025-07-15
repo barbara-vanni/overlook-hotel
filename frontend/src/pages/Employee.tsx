@@ -2,13 +2,18 @@ import React, { useEffect, useState } from "react";
 import {
     Box,
     Typography,
-    List,
-    ListItemText,
-    ListItemButton,
+    Table,
+    TableCell,
+    TableBody,
+    TableHead,
+    TableContainer,
+    TableRow,
+    Paper,
+    Tab,
+    Tabs,
     Container,
     Button,
-    Tabs,
-    Tab
+    Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -19,6 +24,7 @@ interface Profile {
     lastName: string;
     email: string;
     role: string;
+    phone: string;
 }
 
 interface Client {
@@ -29,11 +35,11 @@ interface Client {
 }
 
 const Employee: React.FC = () => {
+    const navigate = useNavigate();
     const [userName, setUserName] = useState<string | null>(null);
     const [employees, setEmployees] = useState<Profile[]>([]);
     const [clients, setClients] = useState<Client[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
-    const navigate = useNavigate();
 
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
     const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -65,6 +71,7 @@ const Employee: React.FC = () => {
                         lastName: p.lastName,
                         email: p.email,
                         role: p.role,
+                        phone: p.phone || "",
                     }));
                 setEmployees(nonAdmins);
             });
@@ -85,87 +92,109 @@ const Employee: React.FC = () => {
         });
     }, []);
 
-    const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
     };
 
-    const handleClick = (id: string, type: "profile" | "client") => {
+    const handleClickUser = (id: string, type: "profile" | "client") => {
         navigate(`/${type}/${id}`);
     };
 
-    const renderList = () => {
-        if (tabIndex === 0) {
-            return employees.map((emp) => (
-                <ListItemButton key={emp.id} onClick={() => handleClick(emp.id, "profile")}>
-                    <ListItemText
-                        primary={`${emp.firstName} ${emp.lastName}`}
-                        secondary={`${emp.email} (${emp.role})`}
-                    />
-                </ListItemButton>
-            ));
-        } else {
-            return clients.map((client) => (
-                <ListItemButton key={client.id} onClick={() => handleClick(client.id, "client")}>
-                    <ListItemText
-                        primary={`${client.firstName} ${client.lastName}`}
-                        secondary={client.email}
-                    />
-                </ListItemButton>
-            ));
-        }
-    };
+    const sortedEmployees = employees
+        .slice()
+        .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
+
+    const sortedClients = clients
+        .slice()
+        .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
 
     return (
         <Container
-            maxWidth="md"
+            maxWidth="xl"
             sx={{
-                mt: 16,
-                height: 'calc(100vh - 128px)',
+                mt: 22,
                 display: 'flex',
                 flexDirection: 'column'
             }}
         >
-            {/* En-tête sticky */}
             <Box
                 sx={{
                     position: 'sticky',
                     top: 124,
-                    backgroundColor: 'rgba(255, 248, 220, 0.95)',
+                    backgroundColor: '#f0ede8',
                     zIndex: 2,
-                    pb: 2
+                    pb: 2,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                 }}
             >
                 {userName && (
-                    <Typography variant="h5" sx={{ mb: 1 }}>
+                    <Typography variant="h5" color="text.secondary">
                         Bienvenue <strong>{userName}</strong>
                     </Typography>
                 )}
 
-                <Tabs value={tabIndex} onChange={handleTabChange} centered>
+                <Tabs value={tabIndex} onChange={handleTabChange}>
                     <Tab label="Employés" />
                     <Tab label="Clients" />
                 </Tabs>
+            </Box>
 
-                {tabIndex === 1 && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Box>
+                <Divider sx={{ m: 3 }} />
+                <Box sx={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', m: 2 }}>
+                    <Typography variant="h5" sx={{ mt: 2 }}>
+                        {tabIndex === 0 ? "Liste des employés" : "Liste des clients"}
+                    </Typography>
+                    {tabIndex === 1 && (
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             color="primary"
                             onClick={() => navigate("/create/client")}
                         >
                             Créer un client
                         </Button>
-                    </Box>
-                )}
-
-                <Typography variant="h5" sx={{ mt: 2 }}>
-                    {tabIndex === 0 ? "Liste des employés" : "Liste des clients"}
-                </Typography>
+                    )}
+                </Box>
             </Box>
 
-            {/* Liste scrollable */}
-            <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
-                <List>{renderList()}</List>
+            <Box>
+                <TableContainer component={Paper} sx={{ boxShadow: 3, maxHeight: 530 }}>
+                    <Table>
+                        <TableHead>
+                            <TableRow sx={{ backgroundColor: "#9c9696" }}>
+                                <TableCell>Nom</TableCell>
+                                <TableCell>Email</TableCell>
+                                {tabIndex === 0 && <TableCell>Téléphone</TableCell>}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {(tabIndex === 0 ? sortedEmployees : sortedClients).map((item, idx) => {
+                                const isOtherEmployee = tabIndex === 0 && item.id !== userId;
+                                return (
+                                    <TableRow
+                                        key={item.id}
+                                        hover
+                                        sx={{
+                                            backgroundColor: idx % 2 === 0 ? "#fff" : "#f0ede8",
+                                            cursor: isOtherEmployee ? "not-allowed" : "pointer",
+                                            opacity: isOtherEmployee ? 0.6 : 1,
+                                        }}
+                                        onClick={() => {
+                                            if (isOtherEmployee) return;
+                                            handleClickUser(item.id, tabIndex === 0 ? "profile" : "client");
+                                        }}
+                                    >
+                                        <TableCell>{item.firstName} {item.lastName}</TableCell>
+                                        <TableCell>{item.email}</TableCell>
+                                        {tabIndex === 0 && <TableCell>{(item as Profile).phone}</TableCell>}
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             </Box>
         </Container>
     );
