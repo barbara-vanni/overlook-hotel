@@ -92,6 +92,11 @@ const Admin: React.FC = () => {
         navigate(`/${type}/${id}`);
     };
 
+    const handleReserveForClient = (client: Client, event: React.MouseEvent) => {
+        event.stopPropagation(); // Prevent row click
+        navigate(`/reservations?clientId=${client.id}&clientName=${encodeURIComponent(client.firstName + ' ' + client.lastName)}`);
+    };
+
     const admins = profiles
         .filter(p => p.role === "admin")
         .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
@@ -207,6 +212,7 @@ const Admin: React.FC = () => {
                                 <TableCell>Email</TableCell>
                                 <TableCell>Téléphone</TableCell>
                                 {tabIndex !== 2 && <TableCell>Contrat</TableCell>}
+                                {tabIndex === 2 && <TableCell>Actions</TableCell>}
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -220,7 +226,14 @@ const Admin: React.FC = () => {
                                     }}
                                     onClick={() => {
                                         if (tabIndex === 0 && userRole === "admin" && item.id !== userId) return;
-                                        handleClickUser(item.id, tabIndex === 2 ? "client" : "profile");
+                                        if (tabIndex === 2) {
+                                            // If it's the clients tab, navigate to reservations for this client
+                                            const client = item as Client;
+                                            navigate(`/reservations?clientId=${client.id}&clientName=${encodeURIComponent(client.firstName + ' ' + client.lastName)}`);
+                                        } else {
+                                            // For other tabs, navigate to profile
+                                            handleClickUser(item.id, "profile");
+                                        }
                                     }}
 
                                 >
@@ -228,6 +241,23 @@ const Admin: React.FC = () => {
                                     <TableCell>{item.email}</TableCell>
                                     <TableCell>{(item as Profile).phone}</TableCell>
                                     {tabIndex !== 2 && <TableCell>{(item as Profile).contract}</TableCell>}
+                                    {tabIndex === 2 && (
+                                        <TableCell>
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                color="primary"
+                                                onClick={(e) => handleReserveForClient(item as Client, e)}
+                                                sx={{
+                                                    fontSize: '0.75rem',
+                                                    padding: '4px 8px',
+                                                    minWidth: 'auto'
+                                                }}
+                                            >
+                                                Réserver
+                                            </Button>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))}
                         </TableBody>

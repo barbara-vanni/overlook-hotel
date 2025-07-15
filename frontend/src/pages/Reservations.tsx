@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
     Container, 
     Typography, 
@@ -217,12 +218,19 @@ const FormDescription = styled(Typography)(({ theme }) => ({
 }));
 
 const Reservations = () => {
+    const location = useLocation();
     const [availableRooms, setAvailableRooms] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [alertOpen, setAlertOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+
+    // Read URL parameters for admin reservations
+    const urlParams = new URLSearchParams(location.search);
+    const adminClientId = urlParams.get('clientId');
+    const adminClientName = urlParams.get('clientName');
+    const isAdminReservation = !!adminClientId;
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -290,8 +298,11 @@ const Reservations = () => {
             return;
         }
 
-        // Check if required fields are filled
-        if (!formData.firstName || !formData.lastName || !formData.email || !formData.checkIn || !formData.checkOut) {
+        // Check if required fields are filled (skip personal info for admin reservations)
+        const personalFieldsRequired = !isAdminReservation;
+        const personalFieldsValid = !personalFieldsRequired || (formData.firstName && formData.lastName && formData.email);
+        
+        if (!personalFieldsValid || !formData.checkIn || !formData.checkOut) {
             showAlert('Veuillez remplir tous les champs obligatoires', 'warning');
             return;
         }
@@ -323,16 +334,22 @@ const Reservations = () => {
 
         // Create reservation directly with the backend structure
         try {
-            // Get client ID from localStorage (from authentication)
-            const userId = localStorage.getItem("userId");
-            if (!userId) {
-                showAlert('Vous devez être connecté pour réserver', 'error');
-                return;
+            // Determine which client ID to use (admin reservation or logged-in user)
+            let clientIdToUse = adminClientId; // Use admin-selected client if available
+            
+            if (!clientIdToUse) {
+                // If no admin client, use logged-in user
+                const userId = localStorage.getItem("userId");
+                if (!userId) {
+                    showAlert('Vous devez être connecté pour réserver', 'error');
+                    return;
+                }
+                clientIdToUse = userId;
             }
 
             // Minimal reservation data - just the essentials
             const reservationData = {
-                client: { id: userId },
+                client: { id: clientIdToUse },
                 room: { id: formData.roomId },
                 enterDate: formData.checkIn,
                 endDate: formData.checkOut,
@@ -349,8 +366,11 @@ const Reservations = () => {
             });
 
             if (response.ok) {
-                const createdReservation = await response.json();
-                showAlert('Réservation confirmée avec succès!', 'success');
+                await response.json(); // Parse response but don't need to store it
+                const successMessage = isAdminReservation 
+                    ? `Réservation confirmée avec succès pour ${decodeURIComponent(adminClientName || '')}!`
+                    : 'Réservation confirmée avec succès!';
+                showAlert(successMessage, 'success');
                 
                 // Reset form
                 setFormData({
@@ -413,6 +433,23 @@ const Reservations = () => {
 
             <Container maxWidth="lg">
                 <ReservationForm>
+                    {/* Admin reservation indicator */}
+                    {isAdminReservation && (
+                        <Alert 
+                            severity="info" 
+                            sx={{ 
+                                mb: 3,
+                                backgroundColor: '#e3f2fd',
+                                color: '#1565c0',
+                                fontFamily: '"Inter", sans-serif'
+                            }}
+                        >
+                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                Vous réservez pour le client: <strong>{decodeURIComponent(adminClientName || '')}</strong>
+                            </Typography>
+                        </Alert>
+                    )}
+                    
                     <SectionTitle>
                         Informations de Réservation
                     </SectionTitle>
@@ -423,12 +460,13 @@ const Reservations = () => {
                     
                     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4, marginTop: 4 }}>
                         {/* Left Column - Guest Selection and Room Search */}
-                        <Box sx={{ flex: 1 }}>
+                        <Box sx={{ flex: isAdminReservation ? 1 : 1 }}>
                             <Box sx={{ 
                                 backgroundColor: '#ffffff', 
                                 padding: 4, 
                                 border: '1px solid #d4c4a8',
-                                marginBottom: 4
+                                marginBottom: 4,
+                                ...(isAdminReservation && { maxWidth: '800px', margin: '0 auto 16px auto' })
                             }}>
                                 <Typography 
                                     variant="h6" 
@@ -521,49 +559,50 @@ const Reservations = () => {
                             </Box>
                         </Box>
 
-                        {/* Right Column - Personal Information */}
-                        <Box sx={{ flex: 1 }}>
-                            <Box sx={{ 
-                                backgroundColor: '#ffffff', 
-                                padding: 4, 
-                                border: '1px solid #d4c4a8',
-                                marginBottom: 4
-                            }}>
-                                <Typography 
-                                    variant="h6" 
-                                    sx={{ 
-                                        fontFamily: '"Playfair Display", serif',
-                                        color: '#a67c52',
-                                        marginBottom: 3,
-                                        textAlign: 'center',
-                                        fontSize: '1.5rem'
-                                    }}
-                                >
-                                    Informations Personnelles
-                                </Typography>
-                                
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                    <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                        {/* Right Column - Personal Information (hidden for admin reservations) */}
+                        {!isAdminReservation && (
+                            <Box sx={{ flex: 1 }}>
+                                <Box sx={{ 
+                                    backgroundColor: '#ffffff', 
+                                    padding: 4, 
+                                    border: '1px solid #d4c4a8',
+                                    marginBottom: 4
+                                }}>
+                                    <Typography 
+                                        variant="h6" 
+                                        sx={{ 
+                                            fontFamily: '"Playfair Display", serif',
+                                            color: '#a67c52',
+                                            marginBottom: 3,
+                                            textAlign: 'center',
+                                            fontSize: '1.5rem'
+                                        }}
+                                    >
+                                        Informations Personnelles
+                                    </Typography>
+                                    
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                        <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                                            <StyledTextField
+                                                fullWidth
+                                                label="Prénom"
+                                                value={formData.firstName}
+                                                onChange={handleInputChange('firstName')}
+                                                variant="outlined"
+                                            />
+                                            <StyledTextField
+                                                fullWidth
+                                                label="Nom"
+                                                value={formData.lastName}
+                                                onChange={handleInputChange('lastName')}
+                                                variant="outlined"
+                                            />
+                                        </Box>
                                         <StyledTextField
                                             fullWidth
-                                            label="Prénom"
-                                            value={formData.firstName}
-                                            onChange={handleInputChange('firstName')}
-                                            variant="outlined"
-                                        />
-                                        <StyledTextField
-                                            fullWidth
-                                            label="Nom"
-                                            value={formData.lastName}
-                                            onChange={handleInputChange('lastName')}
-                                            variant="outlined"
-                                        />
-                                    </Box>
-                                    <StyledTextField
-                                        fullWidth
-                                        label="Email"
-                                        type="email"
-                                        value={formData.email}
+                                            label="Email"
+                                            type="email"
+                                            value={formData.email}
                                         onChange={handleInputChange('email')}
                                         variant="outlined"
                                     />
@@ -577,6 +616,7 @@ const Reservations = () => {
                                 </Box>
                             </Box>
                         </Box>
+                        )}
                     </Box>
 
                     {/* Full Width - Dates and Special Requests */}
