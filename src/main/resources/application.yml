@@ -27,11 +27,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 server:
-  port: 8443
+  port: 8080
   servlet:
     context-path: /overlook_hotel
-  ssl:
-    enabled: true
-    key-store: classpath:keystore.p12
-    key-store-password: overlookhotelsecu
-    key-store-type: PKCS12
