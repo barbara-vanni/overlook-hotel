@@ -28,12 +28,12 @@ const Header = () => {
                 <h1>Overlook Hotel</h1>
                 <nav className="nav">
                     <ul>
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/reservations">Booking</a></li>
-                        <li><a href="/rooms">Rooms</a></li>
+                        <li><a href="/">Accueil</a></li>
+                        <li><a href="/reservations">Réservation</a></li>
+                        <li><a href="/rooms">Chambre</a></li>
                         <li><a href="/avis">Avis</a></li>
                         {!isAuthenticated && (
-                            <li><a href="/login">Login</a></li>
+                            <li><a href="/login">Connexion</a></li>
                         )}
                         {isAuthenticated && (
                             <li>
