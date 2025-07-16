@@ -144,9 +144,9 @@ import React, { useState } from "react";
               {
                   headers: {
                       apikey: SUPABASE_KEY,
-                      Authorization: `Bearer ${accessToken}`, // ← requis pour RLS
+                      Authorization: `Bearer ${accessToken}`,
                       "Content-Type": "application/json",
-                      Prefer: "return=representation" // pour avoir le retour complet
+                      Prefer: "return=representation"
                   },
               }
           );
