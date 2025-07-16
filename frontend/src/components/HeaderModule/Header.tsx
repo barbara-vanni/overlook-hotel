@@ -64,42 +64,44 @@ const Header = () => {
                     </ul>
                 </nav>
 
-                <IconButton
-                    color="inherit"
-                    onClick={handleCartClick}
-                    sx={{
-                        '&:hover': {
-                            backgroundColor: 'rgba(212, 175, 55, 0.1)'
-                        }
-                    }}
-                >
-                    <Badge
-                        badgeContent={getItemCount()}
-                        color="secondary"
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <IconButton
+                        color="inherit"
+                        onClick={handleCartClick}
                         sx={{
-                            '& .MuiBadge-badge': {
-                                backgroundColor: '#d4af37',
-                                color: 'white',
-                                fontWeight: 'bold'
+                            '&:hover': {
+                                backgroundColor: 'rgba(212, 175, 55, 0.1)'
                             }
                         }}
                     >
-                        <LuxuryKeyIcon />
-                    </Badge>
-                </IconButton>
+                        <Badge
+                            badgeContent={getItemCount()}
+                            color="secondary"
+                            sx={{
+                                '& .MuiBadge-badge': {
+                                    backgroundColor: '#d4af37',
+                                    color: 'white',
+                                    fontWeight: 'bold'
+                                }
+                            }}
+                        >
+                            <LuxuryKeyIcon />
+                        </Badge>
+                    </IconButton>
 
-                {isAuthenticated && (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        {(userRole === "admin" || userRole === "employee") && (
-                            <IconButton color="inherit" onClick={handleListClick}>
-                                <ListIcon />
-                            </IconButton>
-                        )}
-                        <Button variant="outlined" color="inherit" onClick={handleLogout}>
-                            Déconnexion
-                        </Button>
-                    </Box>
-                )}
+                    {isAuthenticated && (
+                        <>
+                            {(userRole === "admin" || userRole === "employee") && (
+                                <IconButton color="inherit" onClick={handleListClick}>
+                                    <ListIcon />
+                                </IconButton>
+                            )}
+                            <Button variant="outlined" color="inherit" onClick={handleLogout}>
+                                Déconnexion
+                            </Button>
+                        </>
+                    )}
+                </Box>
             </AppBar>
         </header>
     );
