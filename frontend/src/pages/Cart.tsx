@@ -327,7 +327,7 @@ const Cart: React.FC = () => {
     const navigate = useNavigate();
     const [isProcessingReservation, setIsProcessingReservation] = React.useState(false);
 
-    // Helper function to validate cart items before checkout
+  
     const validateCartItems = () => {
         for (const item of cartItems) {
             if (!item.room?.id) {
@@ -336,11 +336,11 @@ const Cart: React.FC = () => {
             if (!item.checkInDate || !item.checkOutDate) {
                 throw new Error(`Dates de séjour manquantes pour la chambre ${item.room.type}`);
             }
-            // Vérifier que la date de check-in est antérieure à la date de check-out
+            
             if (new Date(item.checkInDate) >= new Date(item.checkOutDate)) {
                 throw new Error(`Dates invalides pour la chambre ${item.room.type}: la date d'arrivée doit être antérieure à la date de départ`);
             }
-            // Vérifier que les dates ne sont pas dans le passé
+        
             if (new Date(item.checkInDate) < new Date()) {
                 throw new Error(`La date d'arrivée pour la chambre ${item.room.type} ne peut pas être dans le passé`);
             }
@@ -349,7 +349,7 @@ const Cart: React.FC = () => {
     };
 
     const handleCheckout = async () => {
-        // Check if user is logged in
+       
         const accessToken = localStorage.getItem("accessToken");
         const userId = localStorage.getItem("userId");
         
@@ -364,12 +364,10 @@ const Cart: React.FC = () => {
             return;
         }
 
-        // Éviter les doubles soumissions
         if (isProcessingReservation) {
             return;
         }
 
-        // Validation des éléments du panier
         try {
             validateCartItems();
         } catch (error) {
@@ -381,18 +379,17 @@ const Cart: React.FC = () => {
         setIsProcessingReservation(true);
 
         try {
-            // Valider les données du panier avant envoi
+          
             validateCartItems();
 
-            // Créer toutes les réservations en parallèle
             const reservationPromises = cartItems.map(async (item) => {
                 const reservationData = {
-                    client: { id: userId }, // Référence au client
-                    room: { id: item.room.id }, // Référence à la chambre
+                    client: { id: userId }, 
+                    room: { id: item.room.id },
                     enterDate: item.checkInDate,
                     endDate: item.checkOutDate,
                     cancel: false,
-                    stat: 'oui' // ou 'pending' selon votre logique métier
+                    stat: 'oui' 
                 };
 
                 const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
@@ -411,12 +408,11 @@ const Cart: React.FC = () => {
                 return response.json();
             });
 
-            // Attendre que toutes les réservations soient créées
+          
             const createdReservations = await Promise.all(reservationPromises);
             
             console.log('Réservations créées avec succès:', createdReservations);
 
-            // Mettre à jour le statut des chambres en "reserved"
             const roomUpdatePromises = cartItems.map(async (item) => {
                 const roomData = {
                     ...item.room,
@@ -434,22 +430,21 @@ const Cart: React.FC = () => {
 
                 if (!response.ok) {
                     console.warn(`Impossible de mettre à jour le statut de la chambre ${item.room.type}:`, response.statusText);
-                    // Ne pas faire échouer la réservation si la mise à jour du statut échoue
+                  
                 }
 
                 return response.ok;
             });
 
-            // Attendre les mises à jour de statut (optionnel, ne fait pas échouer le processus)
+           
             await Promise.allSettled(roomUpdatePromises);
 
-            // Afficher le message de succès
+      
             alert(`Réservation confirmée ! ${cartItems.length} chambre(s) réservée(s). Total: ${getTotalPrice()}€`);
             
-            // Vider le panier
+          
             clearCart();
             
-            // Rediriger vers la page des réservations
             navigate('/reservations');
 
         } catch (error) {
