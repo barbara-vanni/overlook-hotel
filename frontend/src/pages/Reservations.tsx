@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
     Container, 
@@ -234,9 +234,9 @@ const Reservations = () => {
 
 
     const urlParams = new URLSearchParams(location.search);
-    const adminClientId = urlParams.get('clientId');
-    const adminClientName = urlParams.get('clientName');
-    const isAdminReservation = !!adminClientId;
+    const clientId = urlParams.get('clientId');
+    const clientName = urlParams.get('clientName');
+    const isStaffReservation = !!clientId; // Réservation faite par admin ou employé
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -287,9 +287,9 @@ const Reservations = () => {
 
 
     useEffect(() => {
-        if (isAdminReservation && adminClientId) {
+        if (isStaffReservation && clientId) {
             setClientLoading(true);
-            fetch(`http://localhost:8080/overlook_hotel/api/clients/${adminClientId}`)
+            fetch(`http://localhost:8080/overlook_hotel/api/clients/${clientId}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`Erreur du serveur: ${response.status}`);
@@ -305,7 +305,7 @@ const Reservations = () => {
                     setClientLoading(false);
                 });
         }
-    }, [isAdminReservation, adminClientId]);
+    }, [isStaffReservation, clientId]);
 
     const checkRoomAvailability = async (roomId: string): Promise<boolean> => {
         try {
@@ -326,7 +326,7 @@ const Reservations = () => {
             return;
         }
 
-        const personalFieldsRequired = !isAdminReservation;
+        const personalFieldsRequired = !isStaffReservation;
         const personalFieldsValid = !personalFieldsRequired || (formData.firstName && formData.lastName && formData.email);
         
         if (!personalFieldsValid || !formData.checkIn || !formData.checkOut) {
@@ -360,7 +360,7 @@ const Reservations = () => {
 
 
         try {
-            let clientIdToUse = adminClientId;
+            let clientIdToUse = clientId;
             
             if (!clientIdToUse) {
                 const userId = localStorage.getItem("userId");
@@ -391,8 +391,8 @@ const Reservations = () => {
 
             if (response.ok) {
                 await response.json();
-                const successMessage = isAdminReservation 
-                    ? `Réservation confirmée avec succès pour ${decodeURIComponent(adminClientName || '')}!`
+                const successMessage = isStaffReservation 
+                    ? `Réservation confirmée avec succès pour ${decodeURIComponent(clientName || '')}!`
                     : 'Réservation confirmée avec succès!';
                 showAlert(successMessage, 'success');
                 
@@ -457,7 +457,7 @@ const Reservations = () => {
 
             <Container maxWidth="lg">
                 <ReservationForm>
-                    {isAdminReservation && (
+                    {isStaffReservation && (
                         <Card 
                             sx={{ 
                                 mb: 4,
@@ -613,7 +613,7 @@ const Reservations = () => {
                                                         color: '#ffffff'
                                                     }
                                                 }}
-                                                onClick={() => window.open(`/user-profile-form?clientId=${adminClientId}`, '_blank')}
+                                                onClick={() => window.open(`/user-profile-form?clientId=${clientId}`, '_blank')}
                                             >
                                                 Voir le profil complet du client
                                             </Button>
@@ -629,7 +629,7 @@ const Reservations = () => {
                                         }}
                                     >
                                         <Typography variant="body1">
-                                            Impossible de charger les informations du client: <strong>{decodeURIComponent(adminClientName || '')}</strong>
+                                            Impossible de charger les informations du client: <strong>{decodeURIComponent(clientName || '')}</strong>
                                         </Typography>
                                     </Alert>
                                 )}
@@ -646,13 +646,13 @@ const Reservations = () => {
                     </FormDescription>
                     
                     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4, marginTop: 4 }}>
-                        <Box sx={{ flex: isAdminReservation ? 1 : 1 }}>
+                        <Box sx={{ flex: isStaffReservation ? 1 : 1 }}>
                             <Box sx={{ 
                                 backgroundColor: '#ffffff', 
                                 padding: 4, 
                                 border: '1px solid #d4c4a8',
                                 marginBottom: 4,
-                                ...(isAdminReservation && { maxWidth: '800px', margin: '0 auto 16px auto' })
+                                ...(isStaffReservation && { maxWidth: '800px', margin: '0 auto 16px auto' })
                             }}>
                                 <Typography 
                                     variant="h6" 
@@ -745,7 +745,7 @@ const Reservations = () => {
                             </Box>
                         </Box>
 
-                        {!isAdminReservation && (
+                        {!isStaffReservation && (
                             <Box sx={{ flex: 1 }}>
                                 <Box sx={{ 
                                     backgroundColor: '#ffffff', 

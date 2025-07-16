@@ -100,6 +100,11 @@ const Employee: React.FC = () => {
         navigate(`/${type}/${id}`);
     };
 
+    const handleReserveForClient = (client: Client, event: React.MouseEvent) => {
+        event.stopPropagation();
+        navigate(`/reservations?clientId=${client.id}&clientName=${encodeURIComponent(client.firstName + ' ' + client.lastName)}`);
+    };
+
     const sortedEmployees = employees
         .slice()
         .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));
@@ -167,6 +172,7 @@ const Employee: React.FC = () => {
                                 <TableCell>Nom</TableCell>
                                 <TableCell>Email</TableCell>
                                 {tabIndex === 0 && <TableCell>Téléphone</TableCell>}
+                                {tabIndex === 1 && <TableCell>Actions</TableCell>}
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -183,12 +189,41 @@ const Employee: React.FC = () => {
                                         }}
                                         onClick={() => {
                                             if (isOtherEmployee) return;
+                                            // Ne pas déclencher le clic sur la ligne si on clique sur un bouton
+                                            if (tabIndex === 1) return;
                                             handleClickUser(item.id, tabIndex === 0 ? "profile" : "client");
                                         }}
                                     >
-                                        <TableCell>{item.firstName} {item.lastName}</TableCell>
+                                        <TableCell 
+                                            onClick={() => {
+                                                if (isOtherEmployee) return;
+                                                if (tabIndex === 1) {
+                                                    handleClickUser(item.id, "client");
+                                                }
+                                            }}
+                                            sx={{ cursor: tabIndex === 1 ? 'pointer' : 'inherit' }}
+                                        >
+                                            {item.firstName} {item.lastName}
+                                        </TableCell>
                                         <TableCell>{item.email}</TableCell>
                                         {tabIndex === 0 && <TableCell>{(item as Profile).phone}</TableCell>}
+                                        {tabIndex === 1 && (
+                                            <TableCell>
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{
+                                                        backgroundColor: '#a67c52',
+                                                        '&:hover': {
+                                                            backgroundColor: '#8b6342'
+                                                        }
+                                                    }}
+                                                    onClick={(event) => handleReserveForClient(item as Client, event)}
+                                                >
+                                                    Réserver
+                                                </Button>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 );
                             })}
