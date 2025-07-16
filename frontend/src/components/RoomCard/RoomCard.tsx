@@ -10,7 +10,7 @@ import {useNavigate} from "react-router-dom";
         interface RoomCardProps {
             title: string;
             image: string;
-            description: string;@
+            description: string;
         }
 
         const RoomCard = ({ title, image, description }: RoomCardProps) => {

@@ -325,11 +325,35 @@ const ExploreButton = styled(Button)(({ theme }) => ({
 const Cart: React.FC = () => {
     const { cartItems, removeFromCart, getTotalPrice, clearCart } = useCart();
     const navigate = useNavigate();
+    const [isProcessingReservation, setIsProcessingReservation] = React.useState(false);
 
-    const handleCheckout = () => {
+    // Helper function to validate cart items before checkout
+    const validateCartItems = () => {
+        for (const item of cartItems) {
+            if (!item.room?.id) {
+                throw new Error(`Données de chambre invalides pour ${item.room?.type || 'une chambre'}`);
+            }
+            if (!item.checkInDate || !item.checkOutDate) {
+                throw new Error(`Dates de séjour manquantes pour la chambre ${item.room.type}`);
+            }
+            // Vérifier que la date de check-in est antérieure à la date de check-out
+            if (new Date(item.checkInDate) >= new Date(item.checkOutDate)) {
+                throw new Error(`Dates invalides pour la chambre ${item.room.type}: la date d'arrivée doit être antérieure à la date de départ`);
+            }
+            // Vérifier que les dates ne sont pas dans le passé
+            if (new Date(item.checkInDate) < new Date()) {
+                throw new Error(`La date d'arrivée pour la chambre ${item.room.type} ne peut pas être dans le passé`);
+            }
+        }
+        return true;
+    };
+
+    const handleCheckout = async () => {
         // Check if user is logged in
         const accessToken = localStorage.getItem("accessToken");
-        if (!accessToken) {
+        const userId = localStorage.getItem("userId");
+        
+        if (!accessToken || !userId) {
             alert('Vous devez être connecté pour finaliser votre réservation');
             navigate('/login');
             return;
@@ -340,11 +364,101 @@ const Cart: React.FC = () => {
             return;
         }
 
-        // Here you would typically send the reservation to your backend
-        // For now, we'll just show a success message
-        alert(`Réservation confirmée ! Total: ${getTotalPrice()}€`);
-        clearCart();
-        navigate('/reservations');
+        // Éviter les doubles soumissions
+        if (isProcessingReservation) {
+            return;
+        }
+
+        // Validation des éléments du panier
+        try {
+            validateCartItems();
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Erreur de validation';
+            alert(errorMessage);
+            return;
+        }
+
+        setIsProcessingReservation(true);
+
+        try {
+            // Valider les données du panier avant envoi
+            validateCartItems();
+
+            // Créer toutes les réservations en parallèle
+            const reservationPromises = cartItems.map(async (item) => {
+                const reservationData = {
+                    client: { id: userId }, // Référence au client
+                    room: { id: item.room.id }, // Référence à la chambre
+                    enterDate: item.checkInDate,
+                    endDate: item.checkOutDate,
+                    cancel: false,
+                    stat: 'oui' // ou 'pending' selon votre logique métier
+                };
+
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(reservationData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur lors de la création de la réservation pour la chambre ${item.room.type}: ${response.statusText}`);
+                }
+
+                return response.json();
+            });
+
+            // Attendre que toutes les réservations soient créées
+            const createdReservations = await Promise.all(reservationPromises);
+            
+            console.log('Réservations créées avec succès:', createdReservations);
+
+            // Mettre à jour le statut des chambres en "reserved"
+            const roomUpdatePromises = cartItems.map(async (item) => {
+                const roomData = {
+                    ...item.room,
+                    status: 'reserved'
+                };
+
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/rooms/${item.room.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(roomData)
+                });
+
+                if (!response.ok) {
+                    console.warn(`Impossible de mettre à jour le statut de la chambre ${item.room.type}:`, response.statusText);
+                    // Ne pas faire échouer la réservation si la mise à jour du statut échoue
+                }
+
+                return response.ok;
+            });
+
+            // Attendre les mises à jour de statut (optionnel, ne fait pas échouer le processus)
+            await Promise.allSettled(roomUpdatePromises);
+
+            // Afficher le message de succès
+            alert(`Réservation confirmée ! ${cartItems.length} chambre(s) réservée(s). Total: ${getTotalPrice()}€`);
+            
+            // Vider le panier
+            clearCart();
+            
+            // Rediriger vers la page des réservations
+            navigate('/reservations');
+
+        } catch (error) {
+            console.error('Erreur lors de la création des réservations:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+            alert(`Erreur lors de la finalisation de votre réservation: ${errorMessage}`);
+        } finally {
+            setIsProcessingReservation(false);
+        }
     };
 
     const formatDate = (dateString: string) => {
@@ -454,8 +568,11 @@ const Cart: React.FC = () => {
                     </ReservationSummary>
                     
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <ConfirmButton onClick={handleCheckout}>
-                            Confirmer la réservation
+                        <ConfirmButton 
+                            onClick={handleCheckout}
+                            disabled={isProcessingReservation}
+                        >
+                            {isProcessingReservation ? 'Traitement en cours...' : 'Confirmer la réservation'}
                         </ConfirmButton>
                     </Box>
                     

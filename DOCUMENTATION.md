@@ -149,17 +149,27 @@ overlook-hotel/
 ## 🔄 Workflow de réservation
 
 ### Pour un client
-1. Sélection du nombre d'invités
-2. Choix des dates d'arrivée et départ
-3. Sélection d'une chambre disponible
-4. Saisie des informations personnelles
-5. Confirmation de la réservation
+1. Navigation vers la page des chambres (`/rooms`)
+2. Sélection d'une chambre disponible
+3. Ajout au panier avec dates et nombre de personnes
+4. Révision dans le panier (`/cart`)
+5. Confirmation de la réservation → **Enregistrement automatique en base de données**
 
-### Pour un admin (réservation pour un client)
-1. Sélection d'un client depuis la liste admin
-2. Affichage des informations détaillées du client
-3. Accès au formulaire de réservation pré-rempli
-4. Validation et création de la réservation
+### Système de panier
+- **Ajout d'éléments** : Via le modal de réservation dans `/rooms`
+- **Gestion des données** : Contexte React (`CartContext`) avec localStorage
+- **Validation** : Vérification des dates et données avant finalisation
+- **Sauvegarde** : Création automatique des réservations en base via l'API
+- **Mise à jour des statuts** : Les chambres passent automatiquement en statut "reserved"
+
+#### Processus de finalisation (Cart.tsx → handleCheckout)
+1. **Validation utilisateur** : Vérification de l'authentification JWT
+2. **Validation des données** : Contrôle des dates et informations de réservation
+3. **Appels API simultanés** : 
+   - `POST /api/reservations` pour chaque chambre du panier
+   - `PUT /api/rooms/{id}` pour mettre à jour le statut en "reserved"
+4. **Gestion d'erreurs** : Rollback en cas d'échec partiel
+5. **Confirmation** : Notification utilisateur et redirection vers `/reservations`
 
 ## 📱 Fonctionnalités spéciales
 
