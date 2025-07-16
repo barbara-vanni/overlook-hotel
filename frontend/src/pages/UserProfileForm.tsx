@@ -87,8 +87,6 @@ const UserProfileForm: React.FC<Props> = ({ userId, type }) => {
             const payload = {
                 first_name: formData.first_name,
                 last_name: formData.last_name,
-                // firstName: formData.first_name,
-                // lastName: formData.last_name,
                 phone: formData.phone,
                 age: Number(formData.age),
                 address: formData.address,
@@ -96,8 +94,6 @@ const UserProfileForm: React.FC<Props> = ({ userId, type }) => {
                     contract: formData.contract,
                     start_contract: formData.start_contract,
                     end_contract: formData.end_contract || null
-                    // startContract: formData.start_contract || null,
-                    // endContract: formData.end_contract || null
                 })
             };
 

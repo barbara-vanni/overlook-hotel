@@ -25,10 +25,8 @@ const Avis = () => {
     const API_BASE = import.meta.env.VITE_API_BASE_URL;
     const accessToken = localStorage.getItem("accessToken");
     const userId = localStorage.getItem("userId");
-    // const userName = localStorage.getItem("userName");
     const userRole = localStorage.getItem("userRole");
 
-    //state pour gèrer la réponse aux avi des clients (seulement pour un profil admin normalement )
     const [replyContent, setReplyContent] = useState<{ [key: string]: string }>({});
     const [isReplying, setIsReplying] = useState<{ [key: string]: boolean }>({});
     const ALLOWED_ADMIN_ID = "193e4e90-1213-4753-820a-02bc324df8fb";

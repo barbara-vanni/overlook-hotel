@@ -327,7 +327,7 @@ const Cart: React.FC = () => {
     const navigate = useNavigate();
 
     const handleCheckout = () => {
-        // Check if user is logged in
+
         const accessToken = localStorage.getItem("accessToken");
         if (!accessToken) {
             alert('Vous devez être connecté pour finaliser votre réservation');
@@ -340,8 +340,6 @@ const Cart: React.FC = () => {
             return;
         }
 
-        // Here you would typically send the reservation to your backend
-        // For now, we'll just show a success message
         alert(`Réservation confirmée ! Total: ${getTotalPrice()}€`);
         clearCart();
         navigate('/reservations');

@@ -345,12 +345,11 @@ const Rooms = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Helper function to check if room is reserved (handles both English and French statuses)
+
     const isRoomReserved = (status: string) => {
         return status === 'reserved' || status === 'reserve' || status === 'réservé';
     };
 
-    // Helper function to check if room is available (handles both English and French statuses)
     const isRoomAvailable = (status: string) => {
         return status === 'available' || status === 'libre';
     };
@@ -363,24 +362,23 @@ const Rooms = () => {
      * @returns The appropriate image for the room type
      */
     const getRoomImage = (roomType: string) => {
-        if (!roomType) return JasminSuitePicture; // Fallback for null/undefined
+        if (!roomType) return JasminSuitePicture;
 
         const normalizedType = roomType.toLowerCase().trim();
 
-        // Direct matches for exact database values
         const exactMatches: { [key: string]: string } = {
             'chambre': Chambre2,
             'suite': JasminSuitePicture,
             'royale': Palais
         };
 
-        // Check for exact match first
+
         if (exactMatches[normalizedType]) {
             console.log(`🎯 Exact match found for "${roomType}" -> using direct mapping`);
             return exactMatches[normalizedType];
         }
 
-        // Keyword-based fallback matching for variations
+
         const keywordMatches = [
             { keywords: ['chambre', 'standard', 'basic', 'simple'], image: Chambre2 },
             { keywords: ['suite', 'jasmin', 'premium'], image: JasminSuitePicture },
@@ -397,7 +395,7 @@ const Rooms = () => {
         }
 
         console.log(`⚠️ No match found for "${roomType}", using fallback image`);
-        return JasminSuitePicture; // Ultimate fallback
+        return JasminSuitePicture;
     };
 
     useEffect(() => {
@@ -431,7 +429,7 @@ const Rooms = () => {
     };
 
     const handleOpenReservationModal = async (room: any) => {
-        // Check if user is authenticated before opening reservation modal
+
         const isAuthenticated = localStorage.getItem("accessToken");
         if (!isAuthenticated) {
             if (confirm("Vous devez être connecté pour réserver une chambre. Voulez-vous aller à la page de connexion maintenant ?")) {
@@ -440,14 +438,14 @@ const Rooms = () => {
             return;
         }
 
-        // Check if room is available before opening reservation modal
+
         try {
             const response = await fetch(`http://localhost:8080/overlook_hotel/api/rooms/${room.id}/availability`);
             if (response.ok) {
                 const availabilityData = await response.json();
                 if (!availabilityData.available) {
                     alert("Cette chambre n'est plus disponible pour la réservation.");
-                    // Refresh rooms list to update status
+
                     window.location.reload();
                     return;
                 }
@@ -662,8 +660,6 @@ const Rooms = () => {
                                 
                                 <ModalOrnament />
                                 
-                                {/* You can add more details here if your backend returns them */}
-                                
                                 <Box sx={{ textAlign: 'center', marginTop: 3 }}>
                                     <ReserveButton>
                                         Réservez cette chambre
@@ -675,7 +671,6 @@ const Rooms = () => {
                 </Fade>
             </StyledModal>
 
-            {/* Reservation Modal */}
             <ReservationModal
                 open={reservationModalOpen}
                 onClose={handleCloseReservationModal}

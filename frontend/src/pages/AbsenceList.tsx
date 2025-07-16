@@ -252,7 +252,6 @@ const AbsenceList: React.FC<Props> = ({ profileId }) => {
                 </Alert>
             )}
 
-            {/* ✅ Fenêtre de confirmation suppression */}
             <Dialog open={!!confirmDeleteId} onClose={() => setConfirmDeleteId(null)}>
                 <DialogTitle>Confirmer la suppression</DialogTitle>
                 <DialogContent>
