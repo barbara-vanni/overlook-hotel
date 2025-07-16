@@ -93,10 +93,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ open, onClose, room
     const [guests, setGuests] = useState(1);
     const [error, setError] = useState('');
 
-    // Check if user is authenticated
     const isAuthenticated = localStorage.getItem("accessToken");
 
-    // Base price per night (you can adjust this or get it from backend)
     const pricePerNight = 150;
 
     const calculateNights = () => {
@@ -116,7 +114,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ open, onClose, room
     };
 
     const handleAddToCart = async () => {
-        // Validate form
+
         if (!checkInDate || !checkOutDate) {
             setError('Veuillez sélectionner les dates de séjour');
             return;
@@ -132,7 +130,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ open, onClose, room
             return;
         }
 
-        // Check if user is logged in
+
         const accessToken = localStorage.getItem("accessToken");
         if (!accessToken) {
             setError('Vous devez être connecté pour réserver');
@@ -140,7 +138,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ open, onClose, room
         }
 
         if (room) {
-            // Check room availability before adding to cart
             try {
                 const response = await fetch(`http://localhost:8080/overlook_hotel/api/rooms/${room.id}/availability`);
                 if (response.ok) {
@@ -172,8 +169,7 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ open, onClose, room
             setError('');
             alert('Chambre ajoutée au panier !');
             onClose();
-            
-            // Reset form
+
             setCheckInDate('');
             setCheckOutDate('');
             setGuests(1);
@@ -182,7 +178,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ open, onClose, room
 
     if (!room) return null;
 
-    // Don't show modal if user is not authenticated
     if (!isAuthenticated) return null;
 
     const nights = calculateNights();

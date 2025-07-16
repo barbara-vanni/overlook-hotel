@@ -15,7 +15,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const FormulaireCreation: React.FC = () => {
-    const { type } = useParams(); // "client" ou "profile"
+    const { type } = useParams();
     const navigate = useNavigate();
 
     const [step, setStep] = useState<"credentials" | "form">("credentials");
@@ -59,7 +59,7 @@ const FormulaireCreation: React.FC = () => {
 
     const handleSubmit = async () => {
         try {
-            // 1. Création du compte Supabase
+
             const signupRes = await axios.post(
                 `${SUPABASE_URL}/auth/v1/signup`,
                 { email, password },

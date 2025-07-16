@@ -232,7 +232,7 @@ const Reservations = () => {
     const [clientInfo, setClientInfo] = useState<any>(null);
     const [clientLoading, setClientLoading] = useState(false);
 
-    // Read URL parameters for admin reservations
+
     const urlParams = new URLSearchParams(location.search);
     const adminClientId = urlParams.get('clientId');
     const adminClientName = urlParams.get('clientName');
@@ -250,7 +250,7 @@ const Reservations = () => {
         specialRequests: ''
     });
 
-    // Fetch rooms based on guest count
+
     useEffect(() => {
         const fetchAvailableRooms = () => {
             setLoading(true);
@@ -270,7 +270,7 @@ const Reservations = () => {
                 .then(data => {
                     setAvailableRooms(data);
                     setLoading(false);
-                    // Reset room selection if current selection is no longer available
+
                     if (formData.roomId && !data.find((room: any) => room.id === formData.roomId)) {
                         setFormData(prev => ({ ...prev, roomId: '' }));
                     }
@@ -285,7 +285,7 @@ const Reservations = () => {
         fetchAvailableRooms();
     }, [formData.guests]);
 
-    // Fetch client information when admin is making a reservation
+
     useEffect(() => {
         if (isAdminReservation && adminClientId) {
             setClientLoading(true);
@@ -326,7 +326,6 @@ const Reservations = () => {
             return;
         }
 
-        // Check if required fields are filled (skip personal info for admin reservations)
         const personalFieldsRequired = !isAdminReservation;
         const personalFieldsValid = !personalFieldsRequired || (formData.firstName && formData.lastName && formData.email);
         
@@ -335,11 +334,10 @@ const Reservations = () => {
             return;
         }
 
-        // Check room availability before attempting reservation
         const isAvailable = await checkRoomAvailability(formData.roomId);
         if (!isAvailable) {
             showAlert('Cette chambre n\'est plus disponible. Elle a été réservée par un autre client.', 'error');
-            // Refresh the available rooms list
+
             const fetchAvailableRooms = async () => {
                 setLoading(true);
                 const url = formData.guests > 1 
@@ -360,13 +358,11 @@ const Reservations = () => {
             return;
         }
 
-        // Create reservation directly with the backend structure
+
         try {
-            // Determine which client ID to use (admin reservation or logged-in user)
-            let clientIdToUse = adminClientId; // Use admin-selected client if available
+            let clientIdToUse = adminClientId;
             
             if (!clientIdToUse) {
-                // If no admin client, use logged-in user
                 const userId = localStorage.getItem("userId");
                 if (!userId) {
                     showAlert('Vous devez être connecté pour réserver', 'error');
@@ -375,7 +371,7 @@ const Reservations = () => {
                 clientIdToUse = userId;
             }
 
-            // Minimal reservation data - just the essentials
+
             const reservationData = {
                 client: { id: clientIdToUse },
                 room: { id: formData.roomId },
@@ -394,7 +390,7 @@ const Reservations = () => {
             });
 
             if (response.ok) {
-                await response.json(); // Parse response but don't need to store it
+                await response.json();
                 const successMessage = isAdminReservation 
                     ? `Réservation confirmée avec succès pour ${decodeURIComponent(adminClientName || '')}!`
                     : 'Réservation confirmée avec succès!';
@@ -413,7 +409,7 @@ const Reservations = () => {
                     specialRequests: ''
                 });
                 
-                // Refresh available rooms
+
                 const url = formData.guests > 1 
                     ? `http://localhost:8080/overlook_hotel/api/rooms/available?minCapacity=${formData.guests}`
                     : 'http://localhost:8080/overlook_hotel/api/rooms/available';
@@ -461,7 +457,6 @@ const Reservations = () => {
 
             <Container maxWidth="lg">
                 <ReservationForm>
-                    {/* Admin reservation - Client Information Section */}
                     {isAdminReservation && (
                         <Card 
                             sx={{ 
@@ -651,7 +646,6 @@ const Reservations = () => {
                     </FormDescription>
                     
                     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4, marginTop: 4 }}>
-                        {/* Left Column - Guest Selection and Room Search */}
                         <Box sx={{ flex: isAdminReservation ? 1 : 1 }}>
                             <Box sx={{ 
                                 backgroundColor: '#ffffff', 
@@ -751,7 +745,6 @@ const Reservations = () => {
                             </Box>
                         </Box>
 
-                        {/* Right Column - Personal Information (hidden for admin reservations) */}
                         {!isAdminReservation && (
                             <Box sx={{ flex: 1 }}>
                                 <Box sx={{ 
@@ -811,7 +804,6 @@ const Reservations = () => {
                         )}
                     </Box>
 
-                    {/* Full Width - Dates and Special Requests */}
                     <Box sx={{ 
                         backgroundColor: '#ffffff', 
                         padding: 4, 
@@ -899,7 +891,7 @@ const Reservations = () => {
                 </ReservationForm>
             </Container>
 
-            {/* Alert Snackbar */}
+
             <Snackbar 
                 open={alertOpen} 
                 autoHideDuration={6000} 

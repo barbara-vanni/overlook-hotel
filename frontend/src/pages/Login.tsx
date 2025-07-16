@@ -36,20 +36,20 @@ import React, { useState } from "react";
         phone: "",
     });
     const navigate = useNavigate();
+        //
+        // const checkIfAlreadyConnected = () => {
+        //     const accessToken = localStorage.getItem("accessToken");
+        //     return accessToken !== null;
+        // };
+        //
+        // const handleOpen = () => {
+        //     if (checkIfAlreadyConnected()) {
+        //         alert("Vous êtes déjà connecté");
+        //         return;
+        //     }
+        //     setOpen(true);
+        // };
 
-        const checkIfAlreadyConnected = () => {
-            const accessToken = localStorage.getItem("accessToken");
-            return accessToken !== null;
-        };
-
-        const handleOpen = () => {
-            if (checkIfAlreadyConnected()) {
-                alert("Vous êtes déjà connecté");
-                return;
-            }
-            setOpen(true);
-        };
-        
         const handleClose = () => setOpen(false);
 
     const handleLogin = async () => {
@@ -70,20 +70,18 @@ import React, { useState } from "react";
 
               const accessToken = response.data.access_token;
               localStorage.setItem("accessToken", accessToken);
-              // console.log("accessToken", accessToken);
 
-              // Décoder le token pour extraire l’ID Supabase
               const decoded: any = jwtDecode(accessToken);
               const userId = decoded.sub;
 
-              // Récupérer le rôle depuis le backend
+
               const profileRes = await axios.get(
                   `${import.meta.env.VITE_API_BASE_URL}/api/user-role/${userId}`,
                   {
                       headers: { Authorization: `Bearer ${accessToken}` },
                   }
               );
-              // console.log("Réponse du backend :", profileRes.data);
+
 
               const role = profileRes.data.role;
               localStorage.setItem("userId", userId);
@@ -116,7 +114,7 @@ import React, { useState } from "react";
       };
     const handleRegister = async () => {
       try {
-        // 1. Création du compte Supabase (email + password uniquement)
+
         const { email, password } = registerData;
         const signupRes = await axios.post(
           `${SUPABASE_URL}/auth/v1/signup`,
@@ -144,9 +142,9 @@ import React, { useState } from "react";
               {
                   headers: {
                       apikey: SUPABASE_KEY,
-                      Authorization: `Bearer ${accessToken}`, // ← requis pour RLS
+                      Authorization: `Bearer ${accessToken}`,
                       "Content-Type": "application/json",
-                      Prefer: "return=representation" // pour avoir le retour complet
+                      Prefer: "return=representation"
                   },
               }
           );

@@ -93,7 +93,7 @@ const Admin: React.FC = () => {
     };
 
     const handleReserveForClient = (client: Client, event: React.MouseEvent) => {
-        event.stopPropagation(); // Prevent row click
+        event.stopPropagation();
         navigate(`/reservations?clientId=${client.id}&clientName=${encodeURIComponent(client.firstName + ' ' + client.lastName)}`);
     };
 
@@ -112,37 +112,6 @@ const Admin: React.FC = () => {
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
     };
-
-    // const renderList = () => {
-    //     if (tabIndex === 0) {
-    //         return admins.map((profile) => (
-    //             <ListItemButton key={profile.id} onClick={() => handleClickUser(profile.id, "profile")}>
-    //                 <ListItemText
-    //                     primary={`${profile.firstName} ${profile.lastName}`}
-    //                     secondary={`${profile.email} (${profile.role})`}
-    //                 />
-    //             </ListItemButton>
-    //         ));
-    //     } else if (tabIndex === 1) {
-    //         return employees.map((profile) => (
-    //             <ListItemButton key={profile.id} onClick={() => handleClickUser(profile.id, "profile")}>
-    //                 <ListItemText
-    //                     primary={`${profile.firstName} ${profile.lastName}`}
-    //                     secondary={`${profile.email} (${profile.role})`}
-    //                 />
-    //             </ListItemButton>
-    //         ));
-    //     } else {
-    //         return sortedClients.map((client) => (
-    //             <ListItemButton key={client.id} onClick={() => handleClickUser(client.id, "client")}>
-    //                 <ListItemText
-    //                     primary={`${client.firstName} ${client.lastName}`}
-    //                     secondary={client.email}
-    //                 />
-    //             </ListItemButton>
-    //         ));
-    //     }
-    // };
 
     return (
         <Container
@@ -227,11 +196,11 @@ const Admin: React.FC = () => {
                                     onClick={() => {
                                         if (tabIndex === 0 && userRole === "admin" && item.id !== userId) return;
                                         if (tabIndex === 2) {
-                                            // If it's the clients tab, navigate to reservations for this client
+
                                             const client = item as Client;
                                             navigate(`/reservations?clientId=${client.id}&clientName=${encodeURIComponent(client.firstName + ' ' + client.lastName)}`);
                                         } else {
-                                            // For other tabs, navigate to profile
+
                                             handleClickUser(item.id, "profile");
                                         }
                                     }}

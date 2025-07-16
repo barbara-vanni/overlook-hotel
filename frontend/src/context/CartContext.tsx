@@ -45,16 +45,16 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
     const addToCart = (item: CartItem) => {
         setCartItems(prevItems => {
-            // Check if room is already in cart
+
             const existingIndex = prevItems.findIndex(cartItem => cartItem.room.id === item.room.id);
             
             if (existingIndex >= 0) {
-                // Update existing item
+
                 const updatedItems = [...prevItems];
                 updatedItems[existingIndex] = item;
                 return updatedItems;
             } else {
-                // Add new item
+
                 return [...prevItems, item];
             }
         });
