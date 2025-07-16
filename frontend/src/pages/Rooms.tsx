@@ -354,13 +354,7 @@ const Rooms = () => {
         return status === 'available' || status === 'libre';
     };
 
-    /**
-     * Dynamically matches room types to appropriate images
-     * First checks exact matches for database names, then falls back to keyword matching
-     * 
-     * @param roomType - The room type from the database (e.g., "Chambre", "Suite", "Royale")
-     * @returns The appropriate image for the room type
-     */
+
     const getRoomImage = (roomType: string) => {
         if (!roomType) return JasminSuitePicture;
 

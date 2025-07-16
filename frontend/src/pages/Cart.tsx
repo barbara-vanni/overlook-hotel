@@ -325,11 +325,35 @@ const ExploreButton = styled(Button)(({ theme }) => ({
 const Cart: React.FC = () => {
     const { cartItems, removeFromCart, getTotalPrice, clearCart } = useCart();
     const navigate = useNavigate();
+    const [isProcessingReservation, setIsProcessingReservation] = React.useState(false);
 
-    const handleCheckout = () => {
+  
+    const validateCartItems = () => {
+        for (const item of cartItems) {
+            if (!item.room?.id) {
+                throw new Error(`Données de chambre invalides pour ${item.room?.type || 'une chambre'}`);
+            }
+            if (!item.checkInDate || !item.checkOutDate) {
+                throw new Error(`Dates de séjour manquantes pour la chambre ${item.room.type}`);
+            }
+            
+            if (new Date(item.checkInDate) >= new Date(item.checkOutDate)) {
+                throw new Error(`Dates invalides pour la chambre ${item.room.type}: la date d'arrivée doit être antérieure à la date de départ`);
+            }
+        
+            if (new Date(item.checkInDate) < new Date()) {
+                throw new Error(`La date d'arrivée pour la chambre ${item.room.type} ne peut pas être dans le passé`);
+            }
+        }
+        return true;
+    };
 
+    const handleCheckout = async () => {
+       
         const accessToken = localStorage.getItem("accessToken");
-        if (!accessToken) {
+        const userId = localStorage.getItem("userId");
+        
+        if (!accessToken || !userId) {
             alert('Vous devez être connecté pour finaliser votre réservation');
             navigate('/login');
             return;
@@ -340,9 +364,96 @@ const Cart: React.FC = () => {
             return;
         }
 
-        alert(`Réservation confirmée ! Total: ${getTotalPrice()}€`);
-        clearCart();
-        navigate('/reservations');
+        if (isProcessingReservation) {
+            return;
+        }
+
+        try {
+            validateCartItems();
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Erreur de validation';
+            alert(errorMessage);
+            return;
+        }
+
+        setIsProcessingReservation(true);
+
+        try {
+          
+            validateCartItems();
+
+            const reservationPromises = cartItems.map(async (item) => {
+                const reservationData = {
+                    client: { id: userId }, 
+                    room: { id: item.room.id },
+                    enterDate: item.checkInDate,
+                    endDate: item.checkOutDate,
+                    cancel: false,
+                    stat: 'oui' 
+                };
+
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reservations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(reservationData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur lors de la création de la réservation pour la chambre ${item.room.type}: ${response.statusText}`);
+                }
+
+                return response.json();
+            });
+
+          
+            const createdReservations = await Promise.all(reservationPromises);
+            
+            console.log('Réservations créées avec succès:', createdReservations);
+
+            const roomUpdatePromises = cartItems.map(async (item) => {
+                const roomData = {
+                    ...item.room,
+                    status: 'reserved'
+                };
+
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/rooms/${item.room.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(roomData)
+                });
+
+                if (!response.ok) {
+                    console.warn(`Impossible de mettre à jour le statut de la chambre ${item.room.type}:`, response.statusText);
+                  
+                }
+
+                return response.ok;
+            });
+
+           
+            await Promise.allSettled(roomUpdatePromises);
+
+      
+            alert(`Réservation confirmée ! ${cartItems.length} chambre(s) réservée(s). Total: ${getTotalPrice()}€`);
+            
+          
+            clearCart();
+            
+            navigate('/reservations');
+
+        } catch (error) {
+            console.error('Erreur lors de la création des réservations:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+            alert(`Erreur lors de la finalisation de votre réservation: ${errorMessage}`);
+        } finally {
+            setIsProcessingReservation(false);
+        }
     };
 
     const formatDate = (dateString: string) => {
@@ -452,8 +563,11 @@ const Cart: React.FC = () => {
                     </ReservationSummary>
                     
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <ConfirmButton onClick={handleCheckout}>
-                            Confirmer la réservation
+                        <ConfirmButton 
+                            onClick={handleCheckout}
+                            disabled={isProcessingReservation}
+                        >
+                            {isProcessingReservation ? 'Traitement en cours...' : 'Confirmer la réservation'}
                         </ConfirmButton>
                     </Box>
                     
