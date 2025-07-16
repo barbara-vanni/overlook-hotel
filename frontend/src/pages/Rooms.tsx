@@ -392,24 +392,83 @@ const Rooms = () => {
         return JasminSuitePicture;
     };
 
+    /**
+     * Vérifie automatiquement les statuts des chambres et les met à jour si nécessaire
+     * Cette fonction peut être appelée périodiquement ou lors d'événements spécifiques
+     */
+    const checkAndUpdateRoomStatuses = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/room-status/update-all`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Statuts des chambres mis à jour:', result.message);
+                
+                // Recharger la liste des chambres après la mise à jour
+                window.location.reload();
+            } else {
+                console.warn('⚠️ Erreur lors de la mise à jour des statuts:', response.statusText);
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la vérification des statuts:', error);
+        }
+    };
+
+    /**
+     * Vérifie si une chambre spécifique a besoin d'une mise à jour de statut
+     */
+    const checkSpecificRoomStatus = async (roomId: string) => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/room-status/check-room/${roomId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.updated) {
+                    console.log(`🔄 Statut de la chambre ${roomId} mis à jour`);
+                    // Optionnel: recharger seulement cette chambre
+                    return true;
+                }
+            }
+        } catch (error) {
+            console.error(`❌ Erreur lors de la vérification de la chambre ${roomId}:`, error);
+        }
+        return false;
+    };
+
     useEffect(() => {
-        fetch('http://localhost:8080/overlook_hotel/api/rooms')
-            .then(response => {
+        const fetchRooms = async () => {
+            try {
+                // D'abord, vérifier et mettre à jour les statuts des chambres
+                await checkAndUpdateRoomStatuses();
+                
+                // Ensuite, charger les chambres avec les statuts mis à jour
+                const response = await fetch('http://localhost:8080/overlook_hotel/api/rooms');
                 if (!response.ok) {
                     throw new Error(`Erreur du serveur: ${response.status} - ${response.statusText}`);
                 }
-                return response.json();
-            })
-            .then(data => {
+                const data = await response.json();
                 setRooms(data);
                 setLoading(false);
                 setError(null);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error fetching rooms:', error);
-                setError(error.message || 'Impossible de charger les chambres');
+                const errorMessage = error instanceof Error ? error.message : 'Impossible de charger les chambres';
+                setError(errorMessage);
                 setLoading(false);
-            });
+            }
+        };
+
+        fetchRooms();
     }, []);
 
     const handleOpenModal = (room: any) => {
@@ -423,7 +482,7 @@ const Rooms = () => {
     };
 
     const handleOpenReservationModal = async (room: any) => {
-
+        // Check if user is authenticated before opening reservation modal
         const isAuthenticated = localStorage.getItem("accessToken");
         if (!isAuthenticated) {
             if (confirm("Vous devez être connecté pour réserver une chambre. Voulez-vous aller à la page de connexion maintenant ?")) {
@@ -432,14 +491,26 @@ const Rooms = () => {
             return;
         }
 
+        // Vérifier et mettre à jour le statut de cette chambre spécifique
+        try {
+            const statusUpdated = await checkSpecificRoomStatus(room.id);
+            if (statusUpdated) {
+                // Si le statut a été mis à jour, recharger les données
+                window.location.reload();
+                return;
+            }
+        } catch (error) {
+            console.warn('Erreur lors de la vérification du statut de la chambre:', error);
+            // Continuer malgré l'erreur de vérification
+        }
 
+        // Check if room is available before opening reservation modal
         try {
             const response = await fetch(`http://localhost:8080/overlook_hotel/api/rooms/${room.id}/availability`);
             if (response.ok) {
                 const availabilityData = await response.json();
                 if (!availabilityData.available) {
                     alert("Cette chambre n'est plus disponible pour la réservation.");
-
                     window.location.reload();
                     return;
                 }
@@ -457,6 +528,23 @@ const Rooms = () => {
     const handleCloseReservationModal = () => {
         setReservationModalOpen(false);
         setRoomToReserve(null);
+    };
+
+    /**
+     * Fonction pour forcer la mise à jour des statuts (pour les admins)
+     */
+    const handleForceStatusUpdate = async () => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+            await checkAndUpdateRoomStatuses();
+            // La fonction checkAndUpdateRoomStatuses() recharge déjà la page
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour forcée:', error);
+            setError('Erreur lors de la mise à jour des statuts');
+            setLoading(false);
+        }
     };
 
     if (loading) {
@@ -509,6 +597,29 @@ const Rooms = () => {
                     <SubTitle>
                         Vivez l'élégance au Aladdin's Hotel
                     </SubTitle>
+                    
+                    {/* Bouton admin pour forcer la mise à jour des statuts */}
+                    {localStorage.getItem("userRole") === "admin" && (
+                        <Box sx={{ mt: 2 }}>
+                            <Button 
+                                variant="outlined" 
+                                size="small"
+                                onClick={handleForceStatusUpdate}
+                                disabled={loading}
+                                sx={{ 
+                                    color: '#a67c52', 
+                                    borderColor: '#a67c52',
+                                    fontSize: '0.75rem',
+                                    '&:hover': { 
+                                        backgroundColor: '#f0ede8',
+                                        borderColor: '#8b6342' 
+                                    }
+                                }}
+                            >
+                                🔄 Mettre à jour les statuts
+                            </Button>
+                        </Box>
+                    )}
                 </HeroSection>
             </Container>
 

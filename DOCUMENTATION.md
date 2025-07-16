@@ -171,6 +171,33 @@ overlook-hotel/
 4. **Gestion d'erreurs** : Rollback en cas d'échec partiel
 5. **Confirmation** : Notification utilisateur et redirection vers `/reservations`
 
+## 🔄 Système de libération automatique des chambres
+
+### Fonctionnement automatique
+- **Tâche planifiée** : Exécution quotidienne à 2h00 du matin
+- **Libération automatique** : 
+  - Chambres dont les réservations sont expirées (date de fin < aujourd'hui)
+  - Chambres des réservations annulées (cancel = true)
+- **Mise à jour de statut** : `"reserved"` → `"libre"`
+
+### Vérifications en temps réel (Frontend)
+- **Au chargement de `/rooms`** : Vérification automatique des statuts
+- **Avant réservation** : Contrôle du statut de la chambre spécifique
+- **Bouton admin** : Mise à jour manuelle forcée (visible pour les admins)
+
+### API de gestion des statuts
+```
+POST /api/room-status/update-all        # Mise à jour manuelle globale
+POST /api/room-status/check-room/{id}   # Vérification d'une chambre
+GET  /api/room-status/info              # Informations système
+```
+
+### Sécurité et robustesse
+- **Double vérification** : Backend automatique + Frontend en temps réel
+- **Gestion d'erreurs** : Fonctionnement dégradé si un service échoue
+- **Logs détaillés** : Traçabilité complète des opérations
+- **Transactions** : Atomicité des mises à jour base de données
+
 ## 📱 Fonctionnalités spéciales
 
 ### Affichage client pour les admins
