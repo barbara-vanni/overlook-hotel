@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 // import RoomCard from "../components/RoomCard/RoomCard.tsx";
 import JasminSuitePicture from "../assets/image/JasminSuitePicture.jpg";
+import Chambre2 from "../assets/image/Aladdin's Hotel_files/Chambre2.webp";
+import Chambre6 from "../assets/image/Aladdin's Hotel_files/Chambre6.jpg";
+import SaharaOasis from "../assets/image/sahara_oasis.jpg";
+import Palais from "../assets/image/palais.jpg";
 import { Grid, Container, Typography, Box, Button, Modal, Fade, Backdrop } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
@@ -351,6 +355,51 @@ const Rooms = () => {
         return status === 'available' || status === 'libre';
     };
 
+    /**
+     * Dynamically matches room types to appropriate images
+     * First checks exact matches for database names, then falls back to keyword matching
+     * 
+     * @param roomType - The room type from the database (e.g., "Chambre", "Suite", "Royale")
+     * @returns The appropriate image for the room type
+     */
+    const getRoomImage = (roomType: string) => {
+        if (!roomType) return JasminSuitePicture; // Fallback for null/undefined
+
+        const normalizedType = roomType.toLowerCase().trim();
+
+        // Direct matches for exact database values
+        const exactMatches: { [key: string]: string } = {
+            'chambre': Chambre2,
+            'suite': JasminSuitePicture,
+            'royale': Palais
+        };
+
+        // Check for exact match first
+        if (exactMatches[normalizedType]) {
+            console.log(`🎯 Exact match found for "${roomType}" -> using direct mapping`);
+            return exactMatches[normalizedType];
+        }
+
+        // Keyword-based fallback matching for variations
+        const keywordMatches = [
+            { keywords: ['chambre', 'standard', 'basic', 'simple'], image: Chambre2 },
+            { keywords: ['suite', 'jasmin', 'premium'], image: JasminSuitePicture },
+            { keywords: ['royale', 'royal', 'palace', 'palais', 'luxury', 'deluxe'], image: Palais },
+            { keywords: ['sahara', 'desert', 'oasis'], image: SaharaOasis },
+            { keywords: ['family', 'famille'], image: Chambre6 }
+        ];
+
+        for (const match of keywordMatches) {
+            if (match.keywords.some(keyword => normalizedType.includes(keyword))) {
+                console.log(`🔍 Keyword match found for "${roomType}" -> "${match.keywords.find(k => normalizedType.includes(k))}"`);
+                return match.image;
+            }
+        }
+
+        console.log(`⚠️ No match found for "${roomType}", using fallback image`);
+        return JasminSuitePicture; // Ultimate fallback
+    };
+
     useEffect(() => {
         fetch('http://localhost:8080/overlook_hotel/api/rooms')
             .then(response => {
@@ -478,7 +527,7 @@ const Rooms = () => {
                             <Grid container spacing={0} sx={{ width: '100%', margin: 0, justifyContent: 'center' }}>
                                 {index % 2 === 0 ? (
                                     <>
-                                        <Grid size={{ xs: 12, md: 5 }}>
+                                        <Grid xs={12} md={5}>
                                             <RoomContent>
                                                 <RoomTitle>
                                                     {room.type || room.title}
@@ -511,13 +560,13 @@ const Rooms = () => {
                                                 </ReserveButton>
                                             </RoomContent>
                                         </Grid>
-                                        <Grid size={{ xs: 12, md: 7 }}>
+                                        <Grid xs={12} md={7}>
                                             <RoomImageContainer>
                                                 <NavigationArrow className="left">
                                                     ‹
                                                 </NavigationArrow>
                                                 <RoomImage 
-                                                    src={JasminSuitePicture}
+                                                    src={getRoomImage(room.type)}
                                                     alt={room.type || room.title}
                                                 />
                                                 <NavigationArrow className="right">
@@ -528,13 +577,13 @@ const Rooms = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <Grid size={{ xs: 12, md: 7 }}>
+                                        <Grid xs={12} md={7}>
                                             <RoomImageContainer>
                                                 <NavigationArrow className="left">
                                                     ‹
                                                 </NavigationArrow>
                                                 <RoomImage 
-                                                    src={JasminSuitePicture}
+                                                    src={getRoomImage(room.type)}
                                                     alt={room.type || room.title}
                                                 />
                                                 <NavigationArrow className="right">
@@ -542,7 +591,7 @@ const Rooms = () => {
                                                 </NavigationArrow>
                                             </RoomImageContainer>
                                         </Grid>
-                                        <Grid size={{ xs: 12, md: 5 }}>
+                                        <Grid xs={12} md={5}>
                                             <RoomContent>
                                                 <RoomTitle>
                                                     {room.type || room.title}
