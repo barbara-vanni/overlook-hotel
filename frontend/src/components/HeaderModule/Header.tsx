@@ -1,6 +1,7 @@
 import "./Header.css";
-import {AppBar} from "@mui/material";
+import {AppBar, Box, IconButton} from "@mui/material";
 import Button from "@mui/material/Button";
+import ListIcon from '@mui/icons-material/List';
 import {useNavigate } from "react-router-dom";
 
 
@@ -13,7 +14,13 @@ const Header = () => {
         navigate("/login");
     };
 
+    const handleListClick = () => {
+        navigate(`/${role}`); // redirige vers la page de gestion des listes (admin et employé suelement)
+    };
+
+
     const userId = localStorage.getItem("userId");
+    const role = localStorage.getItem("userRole");
 
     return (
         <header className="header">
@@ -36,11 +43,17 @@ const Header = () => {
                     </ul>
                 </nav>
 
-                {/* Afficher uniquement le bouton Déconnexion */}
                 {isAuthenticated && (
-                    <Button variant="outlined" color="inherit" onClick={handleLogout}>
-                        Déconnexion
-                    </Button>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        {(role === "admin" || role === "employee") && (
+                            <IconButton color="inherit" onClick={handleListClick}>
+                                <ListIcon />
+                            </IconButton>
+                        )}
+                        <Button variant="outlined" color="inherit" onClick={handleLogout}>
+                            Déconnexion
+                        </Button>
+                    </Box>
                 )}
             </AppBar>
         </header>
