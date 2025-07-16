@@ -88,7 +88,6 @@ const Header = () => {
                             <LuxuryKeyIcon />
                         </Badge>
                     </IconButton>
-
                     {isAuthenticated && (
                         <>
                             {(userRole === "admin" || userRole === "employee") && (
